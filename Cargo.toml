@@ -1,17 +1,13 @@
 [package]
-name = "alfred_mq"
+name = "alfred-rs"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async_zmq = "0.4.0"
 thiserror = "1.0.58"
-# tmq = "0.4.0"
 tokio = { version = "1.37.0", features = ["rt", "rt-multi-thread", "macros", "time"] }
-rand = "0.9.0-alpha.1"
 zeromq = "0.3.5"
 bytes = "1.6.0"
-
-# zeromq = "0.3.5"
+futures = "0.3.30"
