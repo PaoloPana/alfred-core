@@ -3,17 +3,15 @@ use std::future::Future;
 use std::time::Duration;
 use bytes::Bytes;
 use zeromq::{Socket, SocketRecv, SocketSend, ZmqError};
+use crate::config::Config;
 use crate::message::{Message, MessageCompressionError};
 
-// TODO: change them with configuration file
-pub const LOCAL_URL: &str = "tcp://127.0.0.1";
-pub const PUB_PORT: u32 = 5678;
-pub const SUB_PORT: u32 = 1234;
 pub const MODULE_INFO_TOPIC_REQUEST: &str = "module.info.request";
 pub const MODULE_INFO_TOPIC_RESPONSE: &str = "module.info.response";
 
 pub trait Subscriber {
     fn subscribe(&mut self, topic: String) -> impl Future<Output = Result<(), ZmqError>>;
+    fn subscribe_all(&mut self, topics: Vec<String>) -> impl Future<Output = Result<(), ZmqError>>;
     fn get_message(&mut self) -> impl Future<Output = Result<(String, Message), MessageCompressionError>>;
 }
 
@@ -42,6 +40,13 @@ impl Subscriber for AlfredSubscriber {
         return self.subscriber.subscribe(topic.as_str()).await;
     }
 
+    async fn subscribe_all(&mut self, topics: Vec<String>) -> Result<(), ZmqError> {
+        for topic in topics {
+            self.subscribe(topic).await?;
+        }
+        Ok(())
+    }
+
     async fn get_message(&mut self) -> Result<(String, Message), MessageCompressionError> {
         let zmq_message = self.subscriber.recv().await.expect("Error during get_message");
         let topic_string = String::from_utf8(zmq_message.get(0).unwrap().to_vec()).expect("Error on topic conversion");
@@ -68,18 +73,12 @@ pub struct Connection {
     pub publisher: AlfredPublisher
 }
 impl Connection {
-    fn get_string_connection(url: String, port: u32) -> String {
-        format!("{}:{}", url, port)
-    }
-
-    pub async fn new() -> Result<Connection, Error> {
+    pub async fn new(config: &Config) -> Result<Connection, Error> {
         let mut subscriber = zeromq::SubSocket::new();
-        subscriber.connect(Self::get_string_connection(LOCAL_URL.to_string(), SUB_PORT).as_str())
-            .await
+        subscriber.connect(config.get_alfred_sub_url().as_str()).await
             .expect("Error on subscriber connection");
         let mut publisher = zeromq::PubSocket::new();
-        publisher.connect(Self::get_string_connection(LOCAL_URL.to_string(), PUB_PORT).as_str())
-            .await
+        publisher.connect(config.get_alfred_pub_url().as_str()).await
             .expect("Error on publisher connection");
         tokio::time::sleep(Duration::from_secs(1)).await;
         let mut connection = Connection { subscriber: AlfredSubscriber { subscriber }, publisher: AlfredPublisher { publisher } };
@@ -96,6 +95,10 @@ impl Connection {
 impl Subscriber for Connection {
     fn subscribe(&mut self, topic: String) -> impl Future<Output = Result<(), ZmqError>> {
         self.subscriber.subscribe(topic)
+    }
+
+    fn subscribe_all(&mut self, topics: Vec<String>) -> impl Future<Output=Result<(), ZmqError>> {
+        self.subscriber.subscribe_all(topics)
     }
 
     async fn get_message(&mut self) -> Result<(String, Message), MessageCompressionError> {

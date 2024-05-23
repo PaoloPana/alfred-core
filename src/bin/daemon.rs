@@ -1,11 +1,17 @@
 use zmq2::Context;
 
 fn main() {
+    println!("Loading daemon...");
+    let config = alfred_rs::config::Config::read();
+    let pub_port = config.get_alfred_pub_port();
+    let sub_port = config.get_alfred_sub_port();
     let context = Context::new();
     let xpub_sub = context.socket(zmq2::XPUB).unwrap();
     let pub_xsub = context.socket(zmq2::XSUB).unwrap();
-    pub_xsub.bind(format!("tcp://*:{}", alfred_rs::connection::PUB_PORT).as_str()).unwrap();
-    xpub_sub.bind(format!("tcp://*:{}", alfred_rs::connection::SUB_PORT).as_str()).unwrap();
+    println!("Binding port {} for publish...", pub_port);
+    pub_xsub.bind(format!("tcp://*:{}", pub_port).as_str()).unwrap();
+    println!("Binding port {} for subscription...", sub_port);
+    xpub_sub.bind(format!("tcp://*:{}", sub_port).as_str()).unwrap();
 
     zmq2::proxy(&pub_xsub, &xpub_sub).unwrap();
 }
