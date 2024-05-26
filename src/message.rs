@@ -1,7 +1,10 @@
 use std::{fmt, str::FromStr, collections::{HashMap, hash_map::RandomState}};
-use thiserror::Error;
+use std::collections::LinkedList;
+use std::fmt::Error;
+use itertools::Itertools;
 
-pub(crate) const MESSAGE_SEPARATOR : char = 0x0 as char;
+const MESSAGE_SEPARATOR : char = 0x0 as char;
+const VEC_SEPARATOR : char = 0xFF as char;
 
 #[derive(Debug)]
 #[derive(PartialEq)]
@@ -43,7 +46,7 @@ pub struct Message {
     pub text: String,
     pub starting_module: String,
     pub request_topic: String,
-    pub response_topic: String,
+    pub response_topics: LinkedList<String>,
     pub sender: String,
     pub message_type: MessageType,
     pub params: HashMap<String, String, RandomState>,
@@ -55,7 +58,7 @@ impl Default for Message {
             text: String::from(""),
             starting_module: String::from(""),
             request_topic: String::from(""),
-            response_topic: String::from(""),
+            response_topics: LinkedList::new(),
             sender: String::from(""),
             message_type: MessageType::UNKNOWN,
             params: HashMap::new()
@@ -64,7 +67,7 @@ impl Default for Message {
 }
 
 #[derive(Debug)]
-#[derive(Error)]
+#[derive(thiserror::Error)]
 pub enum MessageCompressionError{
     #[error("field {0} not found!")]
     FieldNotFound(String),
@@ -87,7 +90,10 @@ impl Message {
                 self.text.clone(),
                 self.starting_module.clone(),
                 self.request_topic.clone(),
-                self.response_topic.clone(),
+                Itertools::intersperse(
+                    self.response_topics.iter()
+                    .cloned(), VEC_SEPARATOR.to_string()
+                ).collect(),
                 self.sender.clone(),
                 self.message_type.to_string()
             ]
@@ -100,8 +106,9 @@ impl Message {
     /// decompress
     /// # Examples
     /// ```rust
-    /// use std::collections::HashMap;
-    /// use alfred_rust::message::{Message, MessageType};
+    /// use std::collections::{HashMap, LinkedList, VecDeque};
+    /// use std::io::Lines;
+    /// use alfred_rs::message::{Message, MessageType};
     ///
     /// const MESSAGE_SEPARATOR : char = 0x0 as char;
     ///
@@ -114,10 +121,10 @@ impl Message {
     ///     text: String::from("ciao"),
     ///     starting_module: String::from("telegram"),
     ///     request_topic: String::from("user.request"),
-    ///     response_topic: String::from("telegram.response"),
+    ///     response_topics: LinkedList::from(vec!(String::from("telegram.response"))),
     ///     sender: String::from("0123"),
     ///     message_type: MessageType::TEXT,
-    ///     params: params
+    ///     params
     /// };
     /// assert_eq!(message, decompressed.unwrap());
     /// ```
@@ -130,6 +137,15 @@ impl Message {
             ser_msg
                 .get(index)
                 .ok_or(MessageCompressionError::FieldNotFound(field_name.to_string()))
+        };
+
+        let get_vec = |index :usize, field_name: &str| {
+            Ok(ser_msg
+                .get(index)
+                .ok_or(MessageCompressionError::FieldNotFound(field_name.to_string()))?
+                .split(VEC_SEPARATOR)
+                .map(|val| val.to_string())
+                .collect::<LinkedList<String>>())
         };
 
         let get_params = |start: usize| {
@@ -150,11 +166,26 @@ impl Message {
             text: get_field(0,"text")?.to_string(),
             starting_module: get_field(1,"starting_module")?.to_string(),
             request_topic: get_field(2,"request_topic")?.to_string(),
-            response_topic: get_field(3,"response_topic")?.to_string(),
+            response_topics: get_vec(3,"response_topics")?,
             sender: get_field(4,"sender")?.to_string(),
             message_type: get_field(5,"message_type")?.to_string().parse::<MessageType>().unwrap(),
             params: get_params(6)
         });
+    }
+
+    pub fn reply(&mut self, text: String, message_type: MessageType) -> Result<(String, Self), Error> {
+        let mut response_topics = self.response_topics.clone();
+        let topic = response_topics.pop_front().expect("No response_topic found");
+        let response = Message {
+            text,
+            starting_module: self.starting_module.clone(),
+            request_topic: self.request_topic.clone(),
+            response_topics,
+            sender: self.sender.clone(),
+            message_type,
+            params: Default::default(),
+        };
+        Ok((topic, response))
     }
 
 }

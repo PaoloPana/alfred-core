@@ -20,7 +20,7 @@ impl Config {
                 pub_port: from_env.alfred.pub_port.unwrap_or(from_file.alfred.pub_port.expect("Missing ALFRED_PUB_PORT env variable or alfred.pub_port TOML property")),
                 sub_port: from_env.alfred.sub_port.unwrap_or(from_file.alfred.sub_port.expect("Missing ALFRED_SUB_PORT env variable or alfred.sub_port TOML property")),
             },
-            module: from_file.module
+            module: from_file.module.unwrap_or(HashMap::new())
         }
 
     }
@@ -60,7 +60,7 @@ impl AlfredConfig {
 #[derive(Deserialize, Debug)]
 pub struct EnvConfig {
     alfred: EnvAlfredConfig,
-    module: HashMap<String, String>
+    module: Option<HashMap<String, String>>
 }
 impl EnvConfig {
     pub fn from_file() -> EnvConfig {
@@ -72,7 +72,7 @@ impl EnvConfig {
     pub fn from_env() -> EnvConfig {
         EnvConfig {
             alfred: EnvAlfredConfig::init_from_env().unwrap(),
-            module: HashMap::new()
+            module: Some(HashMap::new())
         }
     }
 }

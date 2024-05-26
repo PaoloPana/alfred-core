@@ -65,6 +65,7 @@ impl Publisher for AlfredPublisher {
     }
 
     async fn publish(&mut self, topic: String, message: &Message) -> Result<(), Error> {
+        println!("Publishing message {:?} to {}", message, topic);
         self.publish_str(topic, message.compress()).await
     }
 }
