@@ -1,6 +1,8 @@
 use log::info;
+#[cfg(feature = "daemon")]
 use zmq2::Context;
 
+#[cfg(feature = "daemon")]
 fn main() {
     env_logger::init();
     info!("Loading daemon...");
