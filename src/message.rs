@@ -2,6 +2,7 @@ use std::{fmt, str::FromStr, collections::{HashMap, hash_map::RandomState}};
 use std::collections::LinkedList;
 use std::fmt::Error;
 use itertools::Itertools;
+use crate::error::MessageCompressionError;
 
 const MESSAGE_SEPARATOR : char = 0x0 as char;
 const VEC_SEPARATOR : char = 0xFF as char;
@@ -66,15 +67,6 @@ impl Default for Message {
     }
 }
 
-#[derive(Debug)]
-#[derive(thiserror::Error)]
-pub enum MessageCompressionError{
-    #[error("field {0} not found!")]
-    FieldNotFound(String),
-    #[error("message type {0} not found!")]
-    MessageType(String)
-}
-
 impl Message {
 
     pub fn empty() -> Self {
@@ -92,7 +84,7 @@ impl Message {
                 self.request_topic.clone(),
                 Itertools::intersperse(
                     self.response_topics.iter()
-                    .cloned(), VEC_SEPARATOR.to_string()
+                        .cloned(), VEC_SEPARATOR.to_string()
                 ).collect(),
                 self.sender.clone(),
                 self.message_type.to_string()
