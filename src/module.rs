@@ -12,8 +12,8 @@ pub struct Module {
 
 impl Module {
     pub async fn new(module_name: String) -> Result<Module, Error> {
-        let config = Config::read();
-        let connection = Connection::new(&config).await.or(Err(Error::ConnectionError))?;
+        let config = Config::read()?;
+        let connection = Connection::new(&config).await?;
         Ok(Module { module_name, config, connection })
     }
 }

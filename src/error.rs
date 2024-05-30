@@ -1,3 +1,5 @@
+use zeromq::ZmqError;
+
 #[derive(Debug)]
 #[derive(thiserror::Error)]
 pub enum Error {
@@ -12,12 +14,22 @@ pub enum Error {
     #[error("Error converting message")]
     ConversionError,
     #[error("MessageCompressionError: {0}")]
-    MessageCompressionError(String)
+    MessageCompressionError(String),
+    #[error("Missing env property: {0}")]
+    MissingEnvPropertyError(String),
+    #[error("ZmqError: {0}")]
+    ZmqError(ZmqError),
 }
 
 impl From<MessageCompressionError> for Error {
     fn from(value: MessageCompressionError) -> Self {
         Error::MessageCompressionError(value.to_string())
+    }
+}
+
+impl From<ZmqError> for Error {
+    fn from(value: ZmqError) -> Self {
+        Error::ZmqError(value)
     }
 }
 

@@ -93,15 +93,14 @@ pub struct Connection {
 impl Connection {
     pub async fn new(config: &Config) -> Result<Connection, Error> {
         let mut subscriber = zeromq::SubSocket::new();
-        subscriber.connect(config.get_alfred_sub_url().as_str()).await.map_err(|_| Error::ConnectionError)?;
+        subscriber.connect(config.get_alfred_sub_url().as_str()).await?;
         debug!("Connected as subscriber");
         let mut publisher = zeromq::PubSocket::new();
-        publisher.connect(config.get_alfred_pub_url().as_str()).await.map_err(|_| Error::ConnectionError)?;
+        publisher.connect(config.get_alfred_pub_url().as_str()).await?;
         debug!("Connected as publisher");
         tokio::time::sleep(Duration::from_secs(1)).await;
         let mut connection = Connection { subscriber: AlfredSubscriber { subscriber }, publisher: AlfredPublisher { publisher } };
-        connection.subscribe(MODULE_INFO_TOPIC_REQUEST.to_string())
-            .await.map_err(|_| Error::SubscribeError(MODULE_INFO_TOPIC_REQUEST.to_string()))?;
+        connection.subscribe(MODULE_INFO_TOPIC_REQUEST.to_string()).await?;
         Ok(connection)
     }
 
