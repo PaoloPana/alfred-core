@@ -12,7 +12,7 @@ pub struct Module {
 
 impl Module {
     pub async fn new(module_name: String) -> Result<Module, Error> {
-        let config = Config::read()?;
+        let config = Config::read(Some(module_name.clone()))?;
         let connection = Connection::new(&config).await?;
         Ok(Module { module_name, config, connection })
     }

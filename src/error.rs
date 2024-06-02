@@ -17,6 +17,8 @@ pub enum Error {
     MessageCompressionError(String),
     #[error("Missing env property: {0}")]
     MissingEnvPropertyError(String),
+    #[error("Missing file property: {0}")]
+    MissingFilePropertyError(String),
     #[error("ZmqError: {0}")]
     ZmqError(ZmqError),
 }

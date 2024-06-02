@@ -167,6 +167,7 @@ impl Message {
 
     pub fn reply(&mut self, text: String, message_type: MessageType) -> Result<(String, Self), Error> {
         let mut response_topics = self.response_topics.clone();
+        // TODO: remove expect
         let topic = response_topics.pop_front().expect("No response_topic found");
         let response = Message {
             text,

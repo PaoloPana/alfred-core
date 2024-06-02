@@ -12,20 +12,25 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn read() -> Result<Config, Error> {
+    pub fn read(module_name: Option<String>) -> Result<Config, Error> {
         let from_env = EnvConfig::from_env();
         let from_file = EnvConfig::from_file();
+        let alfred_from_file = from_file.get("alfred").cloned().ok_or(Error::MissingFilePropertyError("alfred".to_string()))?;
         let url = from_env.alfred.url.unwrap_or(
-            from_file.alfred.url.ok_or(Error::MissingEnvPropertyError("ALFRED_URL".to_string()))?
+            alfred_from_file.get("url").cloned().ok_or(Error::MissingEnvPropertyError("ALFRED_URL".to_string()))?
         );
         let pub_port = from_env.alfred.pub_port.unwrap_or(
-            from_file.alfred.pub_port.ok_or(Error::MissingEnvPropertyError("ALFRED_PUB_PORT".to_string()))?
+            alfred_from_file.get("pub_port").cloned().ok_or(Error::MissingEnvPropertyError("ALFRED_PUB_PORT".to_string()))?.parse().unwrap()
         );
         let sub_port = from_env.alfred.sub_port.unwrap_or(
-            from_file.alfred.sub_port.ok_or(Error::MissingEnvPropertyError("ALFRED_SUB_PORT".to_string()))?
+            alfred_from_file.get("sub_port").cloned().ok_or(Error::MissingEnvPropertyError("ALFRED_SUB_PORT".to_string()))?.parse().unwrap()
         );
         let alfred = AlfredConfig { url, pub_port, sub_port };
-        let module = from_file.module.unwrap_or(HashMap::new());
+        let module = match module_name {
+            Some(module_name) => from_file.get(&module_name).cloned().
+                ok_or(Error::MissingFilePropertyError(module_name))?,
+            None => HashMap::new()
+        };
         Ok(Config { alfred, module })
     }
 
@@ -65,19 +70,18 @@ impl AlfredConfig {
 #[derive(Deserialize, Debug)]
 pub struct EnvConfig {
     alfred: EnvAlfredConfig,
-    module: Option<HashMap<String, String>>
 }
 impl EnvConfig {
-    pub fn from_file() -> EnvConfig {
-        let filename = "config.toml";
-        let contents = fs::read_to_string(filename).expect("Could not read file");
+    pub fn from_file() -> HashMap<String, HashMap<String, String>> {
+        // TODO: remove expect
+        let contents = fs::read_to_string("config.toml").expect("Could not read file");
         let config = toml::from_str(&contents).expect("Unable to load data");
         config
     }
+
     pub fn from_env() -> EnvConfig {
         EnvConfig {
-            alfred: EnvAlfredConfig::init_from_env().unwrap(),
-            module: Some(HashMap::new())
+            alfred: EnvAlfredConfig::init_from_env().unwrap()
         }
     }
 }
