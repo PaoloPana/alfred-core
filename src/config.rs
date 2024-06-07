@@ -28,7 +28,7 @@ impl Config {
         let alfred = AlfredConfig { url, pub_port, sub_port };
         let module = match module_name {
             Some(module_name) => from_file.get(&module_name).cloned().
-                ok_or(Error::MissingFilePropertyError(module_name))?,
+                unwrap_or(HashMap::new()),
             None => HashMap::new()
         };
         Ok(Config { alfred, module })
