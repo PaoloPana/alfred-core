@@ -3,7 +3,9 @@ pub use tokio;
 pub use log;
 
 pub mod message;
-pub mod connection;
+mod connections;
+pub use connections::pubsub_connection;
 pub mod config;
-pub mod module;
+mod modules;
+pub use modules::interface_module;
 pub mod error;
