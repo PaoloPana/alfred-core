@@ -11,11 +11,6 @@ use crate::connections::connection::{Receiver, Sender};
 pub const MODULE_INFO_TOPIC_REQUEST: &str = "module.info.request";
 pub const MODULE_INFO_TOPIC_RESPONSE: &str = "module.info.response";
 
-pub trait Subscriber {
-    fn subscribe(&mut self, topic: String) -> impl Future<Output = Result<(), Error>>;
-    fn subscribe_all(&mut self, topics: Vec<String>) -> impl Future<Output = Result<(), Error>>;
-}
-
 pub struct AlfredSubscriber {
     subscriber: zeromq::SubSocket,
 }
@@ -29,22 +24,12 @@ impl AlfredSubscriber {
     }
 }
 
-impl Subscriber for AlfredSubscriber {
-
-    async fn subscribe(&mut self, topic: String) -> Result<(), Error> {
+impl Receiver for AlfredSubscriber {
+    async fn listen(&mut self, topic: String) -> Result<(), Error> {
         debug!("Subscribing to topic {topic}");
         return self.subscriber.subscribe(topic.as_str()).await.map_err(|_| Error::SubscribeError(topic.clone()));
     }
 
-    async fn subscribe_all(&mut self, topics: Vec<String>) -> Result<(), Error> {
-        for topic in topics {
-            self.subscribe(topic).await?;
-        }
-        Ok(())
-    }
-}
-
-impl Receiver for AlfredSubscriber {
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         let zmq_message = self.subscriber.recv().await.map_err(|_| Error::GetMessageError)?;
         debug!("New message received.");
@@ -98,7 +83,7 @@ impl PubSubConnection {
         debug!("Connected as publisher");
         tokio::time::sleep(Duration::from_secs(1)).await;
         let mut connection = PubSubConnection { subscriber: AlfredSubscriber { subscriber }, publisher: AlfredPublisher { publisher } };
-        connection.subscribe(MODULE_INFO_TOPIC_REQUEST.to_string()).await?;
+        connection.listen(MODULE_INFO_TOPIC_REQUEST.to_string()).await?;
         Ok(connection)
     }
 
@@ -106,17 +91,12 @@ impl PubSubConnection {
         self.subscriber.manage_module_info_request(topic, module_name, &mut self.publisher).await
     }
 }
-impl Subscriber for PubSubConnection {
-    fn subscribe(&mut self, topic: String) -> impl Future<Output=Result<(), Error>> {
-        self.subscriber.subscribe(topic)
-    }
-
-    fn subscribe_all(&mut self, topics: Vec<String>) -> impl Future<Output=Result<(), Error>> {
-        self.subscriber.subscribe_all(topics)
-    }
-}
 
 impl Receiver for PubSubConnection {
+    fn listen(&mut self, topic: String) -> impl Future<Output=Result<(), Error>> {
+        self.subscriber.listen(topic)
+    }
+
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         loop {
             let (topic, message) = self.subscriber.receive().await?;

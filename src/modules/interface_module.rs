@@ -1,6 +1,6 @@
 use std::future::Future;
 use crate::config::Config;
-use crate::pubsub_connection::{PubSubConnection, Subscriber};
+use crate::pubsub_connection::PubSubConnection;
 use crate::connections::connection::{Receiver, Sender};
 use crate::error::Error;
 use crate::message::Message;
@@ -19,17 +19,11 @@ impl InterfaceModule {
     }
 }
 
-impl Subscriber for InterfaceModule {
-    fn subscribe(&mut self, topic: String) -> impl Future<Output=Result<(), Error>> {
-        self.connection.subscriber.subscribe(topic)
-    }
-
-    fn subscribe_all(&mut self, topics: Vec<String>) -> impl Future<Output=Result<(), Error>> {
-        self.connection.subscriber.subscribe_all(topics)
-    }
-}
-
 impl Receiver for InterfaceModule {
+    fn listen(&mut self, topic: String) -> impl Future<Output=Result<(), Error>> {
+        self.connection.subscriber.listen(topic)
+    }
+
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         let mut received = false;
         let mut topic= "".to_string();
