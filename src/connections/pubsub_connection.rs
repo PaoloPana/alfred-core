@@ -10,13 +10,14 @@ use crate::connections::connection::{Receiver, Sender};
 
 pub const MODULE_INFO_TOPIC_REQUEST: &str = "module.info.request";
 pub const MODULE_INFO_TOPIC_RESPONSE: &str = "module.info.response";
+pub const REQUEST_TOPIC: &str = "request";
 
 pub struct AlfredSubscriber {
     subscriber: zeromq::SubSocket,
 }
 
 impl AlfredSubscriber {
-    pub async fn manage_module_info_request(&mut self, topic: String, module_name: String, alfred_publisher: &mut AlfredPublisher) -> Result<bool, Error> {
+    pub async fn manage_module_info_request(&mut self, topic: &str, module_name: String, alfred_publisher: &mut AlfredPublisher) -> Result<bool, Error> {
         if topic != MODULE_INFO_TOPIC_REQUEST { return Ok(false); }
         debug!("Received info request. Replying...");
         alfred_publisher.send_module_info(module_name).await?;
@@ -55,7 +56,7 @@ impl AlfredPublisher {
         let topic_bytes = Bytes::from(topic.clone());
         let message_bytes = Bytes::from(message.clone());
         let zmq_message = vec![topic_bytes, message_bytes].try_into().or(Err(Error::ConversionError))?;
-        debug!("Sending message...");
+        debug!(" > {topic}: {message}");
         self.publisher.send(zmq_message).await.map_err(|_| Error::PublishError(topic, message))
     }
 
@@ -87,7 +88,7 @@ impl PubSubConnection {
         Ok(connection)
     }
 
-    pub async fn manage_module_info_request(&mut self, topic: String, module_name: String) -> Result<bool, Error> {
+    pub async fn manage_module_info_request(&mut self, topic: &str, module_name: String) -> Result<bool, Error> {
         self.subscriber.manage_module_info_request(topic, module_name, &mut self.publisher).await
     }
 }
@@ -100,7 +101,7 @@ impl Receiver for PubSubConnection {
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         loop {
             let (topic, message) = self.subscriber.receive().await?;
-            if self.manage_module_info_request(topic.clone(), "".to_string()).await? {
+            if self.manage_module_info_request(topic.as_str(), "".to_string()).await? {
                 continue;
             }
             return Ok((topic, message));

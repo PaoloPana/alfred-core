@@ -9,6 +9,7 @@ const VEC_SEPARATOR : char = 0xFF as char;
 
 #[derive(Debug)]
 #[derive(PartialEq)]
+#[derive(Copy, Clone)]
 pub enum MessageType {
     UNKNOWN,
     TEXT,
@@ -71,6 +72,18 @@ impl Message {
 
     pub fn empty() -> Self {
         return Message::default();
+    }
+
+    pub fn clone(&self) -> Self {
+        Message {
+            text: self.text.clone(),
+            starting_module: self.starting_module.clone(),
+            request_topic: self.request_topic.clone(),
+            response_topics: self.response_topics.clone(),
+            sender: self.sender.clone(),
+            message_type: self.message_type.clone(),
+            params: self.params.clone(),
+        }
     }
 
     pub fn compress(&self) -> String {

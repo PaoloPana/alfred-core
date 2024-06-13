@@ -30,7 +30,7 @@ impl Receiver for InterfaceModule {
         let mut message: Message = Message::empty();
         while !received {
             (topic, message) = self.connection.subscriber.receive().await?;
-            received = !self.connection.manage_module_info_request(topic.clone(), self.module_name.clone()).await?;
+            received = !self.connection.manage_module_info_request(topic.as_str(), self.module_name.clone()).await?;
         }
         Ok((topic, message))
     }
