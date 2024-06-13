@@ -12,10 +12,10 @@ pub struct InterfaceModule {
 }
 
 impl InterfaceModule {
-    pub async fn new(module_name: String) -> Result<InterfaceModule, Error> {
+    pub async fn new(module_name: String) -> Result<Self, Error> {
         let config = Config::read(Some(module_name.clone()))?;
         let connection = PubSubConnection::new(&config).await?;
-        Ok(InterfaceModule { module_name, config, connection })
+        Ok(Self { module_name, config, connection })
     }
 }
 

@@ -10,4 +10,5 @@ pub mod config;
 mod modules;
 pub use modules::interface_module;
 pub use modules::service_module;
+pub use modules::callback_module;
 pub mod error;

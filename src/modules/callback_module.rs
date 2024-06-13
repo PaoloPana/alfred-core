@@ -5,13 +5,13 @@ use crate::connections::connection::{Receiver, Sender};
 use crate::error::Error;
 use crate::message::Message;
 
-pub struct ServiceModule {
+pub struct CallbackModule {
     pub module_name: String,
     pub config: Config,
     pub connection: PubSubConnection
 }
 
-impl ServiceModule {
+impl CallbackModule {
     pub async fn new(module_name: String) -> Result<Self, Error> {
         let config = Config::read(Some(module_name.clone()))?;
         let mut connection = PubSubConnection::new(&config).await?;
@@ -24,7 +24,7 @@ impl ServiceModule {
     }
 }
 
-impl Receiver for ServiceModule {
+impl Receiver for CallbackModule {
     fn listen(&mut self, topic: String) -> impl Future<Output=Result<(), Error>> {
         self.connection.subscriber.listen(topic)
     }
@@ -44,7 +44,7 @@ impl Receiver for ServiceModule {
     }
 }
 
-impl Sender for ServiceModule {
+impl Sender for CallbackModule {
     fn send(&mut self, topic: String, message: &Message) -> impl Future<Output=Result<(), Error>> {
         self.connection.publisher.send(topic, message)
     }
