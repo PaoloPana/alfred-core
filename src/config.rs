@@ -40,6 +40,7 @@ impl Config {
     pub fn get_alfred_url(&self) -> String { self.alfred.get_url() }
     pub fn get_alfred_pub_port(&self) -> u32 { self.alfred.get_pub_port() }
     pub fn get_alfred_sub_port(&self) -> u32 { self.alfred.get_sub_port() }
+    pub fn get_alfred_tmp_dir(&self) -> String { self.alfred.get_tmp_dir() }
     fn get_alfred_url_by_port(&self, port: u32) -> String {
         format!("{}:{}", self.get_alfred_url(),  port)
     }
