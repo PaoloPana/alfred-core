@@ -25,7 +25,10 @@ impl Config {
         let sub_port = from_env.alfred.sub_port.unwrap_or(
             alfred_from_file.get("sub_port").cloned().ok_or(Error::MissingEnvPropertyError("ALFRED_SUB_PORT".to_string()))?.parse().unwrap()
         );
-        let alfred = AlfredConfig { url, pub_port, sub_port };
+        let tmp_dir = from_env.alfred.tmp_dir.unwrap_or(
+            format!("{}", std::env::current_dir().unwrap().display())
+        );
+        let alfred = AlfredConfig { url, pub_port, sub_port, tmp_dir };
         let module = match module_name {
             Some(module_name) => from_file.get(&module_name).cloned().
                 unwrap_or(HashMap::new()),
@@ -58,13 +61,16 @@ pub struct AlfredConfig {
     #[envconfig(from = "ALFRED_PUB_PORT")]
     pub_port: u32,
     #[envconfig(from = "ALFRED_SUB_PORT")]
-    sub_port: u32
+    sub_port: u32,
+    #[envconfig(from = "ALFRED_TMP_DIR")]
+    tmp_dir: String
 }
 
 impl AlfredConfig {
     pub fn get_url(&self) -> String { self.url.clone() }
     pub fn get_pub_port(&self) -> u32 { self.pub_port }
     pub fn get_sub_port(&self) -> u32 { self.sub_port }
+    pub fn get_tmp_dir(&self) -> String { self.tmp_dir.clone() }
 }
 
 #[derive(Deserialize, Debug)]
@@ -93,5 +99,7 @@ struct EnvAlfredConfig {
     #[envconfig(from = "ALFRED_PUB_PORT")]
     pub_port: Option<u32>,
     #[envconfig(from = "ALFRED_SUB_PORT")]
-    sub_port: Option<u32>
+    sub_port: Option<u32>,
+    #[envconfig(from = "ALFRED_TMP_DIR")]
+    tmp_dir: Option<String>
 }
