@@ -1,7 +1,7 @@
 use std::{fmt, str::FromStr, collections::{HashMap, hash_map::RandomState}};
 use std::collections::LinkedList;
-use std::fmt::Error;
 use itertools::Itertools;
+use serde_derive::Deserialize;
 use crate::error::MessageCompressionError;
 
 const MESSAGE_SEPARATOR : char = 0x0 as char;
@@ -10,6 +10,7 @@ const VEC_SEPARATOR : char = 0xFF as char;
 #[derive(Debug)]
 #[derive(PartialEq)]
 #[derive(Copy, Clone)]
+#[derive(Deserialize)]
 pub enum MessageType {
     UNKNOWN,
     TEXT,
@@ -178,10 +179,9 @@ impl Message {
         });
     }
 
-    pub fn reply(&mut self, text: String, message_type: MessageType) -> Result<(String, Self), Error> {
+    pub fn reply(&mut self, text: String, message_type: MessageType) -> Result<(String, Self), crate::error::Error> {
         let mut response_topics = self.response_topics.clone();
-        // TODO: remove expect
-        let topic = response_topics.pop_front().expect("No response_topic found");
+        let topic = response_topics.pop_front().ok_or(crate::error::Error::ReplyError)?;
         let response = Message {
             text,
             starting_module: self.starting_module.clone(),

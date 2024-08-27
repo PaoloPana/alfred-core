@@ -5,6 +5,8 @@ use toml;
 use envconfig::Envconfig;
 use crate::error::Error;
 
+pub const CONFIG_FILENAME: &str = "config.toml";
+
 #[derive(Deserialize, Debug)]
 pub struct Config {
     alfred: AlfredConfig,
@@ -81,7 +83,7 @@ pub struct EnvConfig {
 impl EnvConfig {
     pub fn from_file() -> HashMap<String, HashMap<String, String>> {
         // TODO: remove expect
-        let contents = fs::read_to_string("config.toml").expect("Could not read file");
+        let contents = fs::read_to_string(CONFIG_FILENAME).expect("Could not read file");
         let config = toml::from_str(&contents).expect("Unable to load data");
         config
     }

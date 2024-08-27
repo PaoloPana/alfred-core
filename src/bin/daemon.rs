@@ -1,10 +1,10 @@
+use std::error::Error;
 use log::info;
 #[cfg(feature = "daemon")]
 use zmq2::Context;
-use alfred_rs::error::Error;
 
 #[cfg(feature = "daemon")]
-fn main() -> Result<(), Error>{
+fn main() -> Result<(), Box<dyn Error>>{
     env_logger::init();
     info!("Loading daemon...");
     let config = alfred_rs::config::Config::read(None)?;

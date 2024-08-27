@@ -2,6 +2,7 @@ use zeromq::ZmqError;
 
 #[derive(Debug)]
 #[derive(thiserror::Error)]
+#[from(std::error::Error)]
 pub enum Error {
     #[error("Error on connection")]
     ConnectionError,
@@ -13,6 +14,8 @@ pub enum Error {
     GetMessageError,
     #[error("Error converting message")]
     ConversionError,
+    #[error("No response topic found")]
+    ReplyError,
     #[error("MessageCompressionError: {0}")]
     MessageCompressionError(String),
     #[error("Missing env property: {0}")]
