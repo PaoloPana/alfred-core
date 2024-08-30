@@ -7,6 +7,8 @@ mod connections;
 pub use connections::pubsub_connection;
 pub use connections::connection;
 pub mod config;
+pub mod router_config;
+
 mod modules;
 pub use modules::interface_module;
 pub use modules::service_module;

@@ -20,6 +20,7 @@ env_logger = { version = "0.11", optional = true } # only for daemon
 
 [features]
 daemon = ["dep:zmq2", "dep:env_logger"]
+routing = ["dep:env_logger"]
 
 [lib]
 name = "alfred_rs"
@@ -31,3 +32,8 @@ required-features = ["default"]
 name = "daemon"
 path = "src/bin/daemon.rs"
 required-features = ["daemon"]
+
+[[bin]]
+name = "routing"
+path = "src/bin/routing.rs"
+required-features = ["routing"]
