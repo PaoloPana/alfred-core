@@ -20,7 +20,7 @@ impl ServiceModule {
     }
 
     pub fn is_request_message_for_module(&self, topic: &str, message: &Message) -> bool {
-        return topic != REQUEST_TOPIC || message.request_topic == self.module_name;
+        topic != REQUEST_TOPIC || message.request_topic == self.module_name
     }
 }
 
@@ -32,7 +32,7 @@ impl Receiver for ServiceModule {
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         let mut received = false;
         let mut topic= "".to_string();
-        let mut message: Message = Message::empty();
+        let mut message = Message::empty();
         while !received {
             (topic, message) = self.connection.subscriber.receive().await?;
             received = !self.connection.manage_module_info_request(topic.as_str(), self.module_name.clone()).await?;
