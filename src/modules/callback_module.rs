@@ -4,6 +4,7 @@ use crate::pubsub_connection::{PubSubConnection, REQUEST_TOPIC};
 use crate::connections::connection::{Receiver, Sender};
 use crate::error::Error;
 use crate::message::Message;
+use crate::modules::module::Module;
 
 pub struct CallbackModule {
     pub module_name: String,
@@ -20,9 +21,11 @@ impl CallbackModule {
     }
 
     pub fn is_request_message_for_module(&self, topic: &str, message: &Message) -> bool {
-        return topic != REQUEST_TOPIC || message.request_topic == self.module_name;
+        topic != REQUEST_TOPIC || message.request_topic == self.module_name
     }
 }
+
+impl Module for CallbackModule {}
 
 impl Receiver for CallbackModule {
     fn listen(&mut self, topic: String) -> impl Future<Output=Result<(), Error>> {
