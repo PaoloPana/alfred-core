@@ -1,6 +1,6 @@
 use std::future::Future;
 use crate::config::Config;
-use crate::pubsub_connection::PubSubConnection;
+use crate::pubsub_connection::{PubSubConnection, REQUEST_TOPIC};
 use crate::connections::connection::{Receiver, Sender};
 use crate::error::Error;
 use crate::message::Message;
@@ -14,8 +14,15 @@ pub struct InterfaceModule {
 
 impl InterfaceModule {
     pub async fn new(module_name: String) -> Result<Self, Error> {
-        let config = Config::read(Some(module_name.clone()))?;
-        let connection = PubSubConnection::new(&config).await?;
+        InterfaceModule::new_with_custom_config(
+            module_name.clone(),
+            Config::read(Some(module_name.clone()))?
+        ).await
+    }
+
+    pub async fn new_with_custom_config(module_name: String, config: Config) -> Result<Self, Error> {
+        let mut connection = PubSubConnection::new(&config).await?;
+        connection.listen(REQUEST_TOPIC.to_string()).await?;
         Ok(Self { module_name, config, connection })
     }
 }

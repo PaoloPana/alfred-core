@@ -14,7 +14,13 @@ pub struct ServiceModule {
 
 impl ServiceModule {
     pub async fn new(module_name: String) -> Result<Self, Error> {
-        let config = Config::read(Some(module_name.clone()))?;
+        ServiceModule::new_with_custom_config(
+            module_name.clone(),
+            Config::read(Some(module_name.clone()))?
+        ).await
+    }
+
+    pub async fn new_with_custom_config(module_name: String, config: Config) -> Result<Self, Error> {
         let mut connection = PubSubConnection::new(&config).await?;
         connection.listen(REQUEST_TOPIC.to_string()).await?;
         Ok(Self { module_name, config, connection })
