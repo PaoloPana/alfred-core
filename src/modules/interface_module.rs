@@ -4,6 +4,7 @@ use crate::pubsub_connection::PubSubConnection;
 use crate::connections::connection::{Receiver, Sender};
 use crate::error::Error;
 use crate::message::Message;
+use crate::modules::module::Module;
 
 pub struct InterfaceModule {
     pub module_name: String,
@@ -18,6 +19,8 @@ impl InterfaceModule {
         Ok(Self { module_name, config, connection })
     }
 }
+
+impl Module for InterfaceModule {}
 
 impl Receiver for InterfaceModule {
     fn listen(&mut self, topic: String) -> impl Future<Output=Result<(), Error>> {

@@ -13,4 +13,5 @@ mod modules;
 pub use modules::interface_module;
 pub use modules::service_module;
 pub use modules::callback_module;
+pub use modules::module;
 pub mod error;

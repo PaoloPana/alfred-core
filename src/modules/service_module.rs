@@ -4,6 +4,7 @@ use crate::pubsub_connection::{PubSubConnection, REQUEST_TOPIC};
 use crate::connections::connection::{Receiver, Sender};
 use crate::error::Error;
 use crate::message::Message;
+use crate::modules::module::Module;
 
 pub struct ServiceModule {
     pub module_name: String,
@@ -23,6 +24,8 @@ impl ServiceModule {
         topic != REQUEST_TOPIC || message.request_topic == self.module_name
     }
 }
+
+impl Module for ServiceModule {}
 
 impl Receiver for ServiceModule {
     fn listen(&mut self, topic: String) -> impl Future<Output=Result<(), Error>> {
