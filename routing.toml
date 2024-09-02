@@ -1,6 +1,6 @@
 [[routing]]
-from_topic = "events.wake-word.triggered"
-to_topic = "console"
+from_topic = "event.wake-word.triggered"
+to_topic = "mic"
 [routing.message]
 text = "-"
 message_type = "TEXT"
