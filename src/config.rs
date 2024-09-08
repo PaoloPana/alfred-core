@@ -27,7 +27,8 @@ impl Config {
         }
         let contents = fs::read_to_string(CONFIG_FILENAME).expect("Could not read file");
         let table: Table = contents.parse().unwrap();
-        let module_config = table[&module_name.unwrap()].as_table();
+        let module_config = table.get(&module_name.unwrap())
+            .map(|val| val.as_table()).unwrap_or(None);
         if module_config.is_none() {
             return Ok(HashMap::new());
         }
