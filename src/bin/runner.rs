@@ -1,6 +1,7 @@
 use std::env;
 use std::error::Error;
-use log::info;
+use std::path::Path;
+use log::{error, info};
 use alfred_rs::config::Config;
 use std::process::Command;
 
@@ -29,14 +30,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     modules.iter().for_each(|module| {
-        // TODO: check if file exists
-        info!("running module '{}'...", module);
-        Command::new("sh")
-            .arg("-c")
-            .env("RUST_LOG", rust_log_env.clone())
-            .arg(format!("./{module}"))
-            .spawn()
-            .expect("failed to execute process");
+        // check if file exists
+        if !Path::new(&format!("./{module}")).exists() {
+            error!("module {module} not found");
+        } else {
+            info!("running module '{}'...", module);
+            Command::new("sh")
+                .arg("-c")
+                .env("RUST_LOG", rust_log_env.clone())
+                .arg(format!("./{module}"))
+                .spawn()
+                .expect("failed to execute process");
+        }
     });
     Ok(())
 }
