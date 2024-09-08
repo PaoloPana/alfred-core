@@ -9,3 +9,6 @@ modules = [
     "alfred-mic",
     "alfred-stt"
 ]
+[runner]
+log = "debug"
+output = "terminal"
