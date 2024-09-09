@@ -3,7 +3,7 @@ use std::error::Error;
 use alfred_rs::log::{debug, info, warn};
 use alfred_rs::connection::{Receiver, Sender};
 use alfred_rs::interface_module::InterfaceModule;
-use alfred_rs::router_config::{Routing, RoutingItem};
+use alfred_rs::router_config::Routing;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
