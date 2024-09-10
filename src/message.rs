@@ -179,7 +179,7 @@ impl Message {
         });
     }
 
-    pub fn reply(&mut self, text: String, message_type: MessageType) -> Result<(String, Self), crate::error::Error> {
+    pub fn reply(&self, text: String, message_type: MessageType) -> Result<(String, Self), crate::error::Error> {
         let mut response_topics = self.response_topics.clone();
         let topic = response_topics.pop_front().ok_or(crate::error::Error::ReplyError)?;
         let response = Message {

@@ -1,4 +1,14 @@
 [alfred]
 url = "tcp://127.0.0.1"
-pub_port = "5678"
-sub_port = "1234"
+pub_port = 5678
+sub_port = 1234
+modules = [
+    "daemon",
+    "routing",
+    "alfred-wake-word",
+    "alfred-mic",
+    "alfred-stt"
+]
+[runner]
+log = "debug"
+output = "terminal"

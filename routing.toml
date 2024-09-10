@@ -4,4 +4,10 @@ to_topic = "mic"
 [routing.message]
 text = "-"
 message_type = "TEXT"
+response_topics = [
+    "stt",
+    "chat",
+    "tts",
+    "audio_out"
+]
 
