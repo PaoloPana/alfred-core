@@ -10,7 +10,6 @@ use crate::connections::connection::{Receiver, Sender};
 
 pub const MODULE_INFO_TOPIC_REQUEST: &str = "module.info.request";
 pub const MODULE_INFO_TOPIC_RESPONSE: &str = "module.info.response";
-pub const REQUEST_TOPIC: &str = "request";
 
 pub struct AlfredSubscriber {
     subscriber: zeromq::SubSocket,
@@ -28,7 +27,7 @@ impl AlfredSubscriber {
 impl Receiver for AlfredSubscriber {
     async fn listen(&mut self, topic: String) -> Result<(), Error> {
         debug!("Subscribing to topic {topic}");
-        return self.subscriber.subscribe(topic.as_str()).await.map_err(|_| Error::SubscribeError(topic.clone()));
+        self.subscriber.subscribe(topic.as_str()).await.map_err(|_| Error::SubscribeError(topic.clone()))
     }
 
     async fn receive(&mut self) -> Result<(String, Message), Error> {

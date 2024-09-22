@@ -1,6 +1,6 @@
 use std::future::Future;
 use crate::config::Config;
-use crate::pubsub_connection::{PubSubConnection, REQUEST_TOPIC};
+use crate::pubsub_connection::{PubSubConnection, MODULE_INFO_TOPIC_REQUEST};
 use crate::connections::connection::{Receiver, Sender};
 use crate::error::Error;
 use crate::message::Message;
@@ -22,12 +22,8 @@ impl ServiceModule {
 
     pub async fn new_with_custom_config(module_name: String, config: Config) -> Result<Self, Error> {
         let mut connection = PubSubConnection::new(&config).await?;
-        connection.listen(REQUEST_TOPIC.to_string()).await?;
+        connection.listen(MODULE_INFO_TOPIC_REQUEST.to_string()).await?;
         Ok(Self { module_name, config, connection })
-    }
-
-    pub fn is_request_message_for_module(&self, topic: &str, message: &Message) -> bool {
-        topic != REQUEST_TOPIC || message.request_topic == self.module_name
     }
 }
 
@@ -45,9 +41,6 @@ impl Receiver for ServiceModule {
         while !received {
             (topic, message) = self.connection.subscriber.receive().await?;
             received = !self.connection.manage_module_info_request(topic.as_str(), self.module_name.clone()).await?;
-            if received && !self.is_request_message_for_module(topic.as_str(), &message) {
-                received = false;
-            }
         }
         Ok((topic, message))
     }
