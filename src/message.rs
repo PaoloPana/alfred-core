@@ -7,10 +7,7 @@ use crate::error::MessageCompressionError;
 const MESSAGE_SEPARATOR : char = 0x0 as char;
 const VEC_SEPARATOR : char = 0xFF as char;
 
-#[derive(Debug)]
-#[derive(PartialEq)]
-#[derive(Copy, Clone)]
-#[derive(Deserialize)]
+#[derive(Debug, PartialEq, Copy, Clone, Deserialize)]
 pub enum MessageType {
     UNKNOWN,
     TEXT,
@@ -43,8 +40,7 @@ impl fmt::Display for MessageType {
     }
 }
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Message {
     pub text: String,
     pub starting_module: String,
@@ -57,7 +53,7 @@ pub struct Message {
 
 impl Default for Message {
     fn default() -> Self {
-        return Self {
+        Self {
             text: String::from(""),
             starting_module: String::from(""),
             request_topic: String::from(""),
@@ -65,14 +61,14 @@ impl Default for Message {
             sender: String::from(""),
             message_type: MessageType::UNKNOWN,
             params: HashMap::new()
-        };
+        }
     }
 }
 
 impl Message {
 
     pub fn empty() -> Self {
-        return Message::default();
+        Message::default()
     }
 
     pub fn clone(&self) -> Self {
@@ -91,22 +87,21 @@ impl Message {
         let params = self.params.iter()
             .map(|(k, v)| format!("{k}{MESSAGE_SEPARATOR}{v}"));
 
-        return
-            [
-                self.text.clone(),
-                self.starting_module.clone(),
-                self.request_topic.clone(),
-                Itertools::intersperse(
-                    self.response_topics.iter()
-                        .cloned(), VEC_SEPARATOR.to_string()
-                ).collect(),
-                self.sender.clone(),
-                self.message_type.to_string()
-            ]
-                .into_iter()
-                .chain(params)
-                .collect::<Vec<String>>()
-                .join(MESSAGE_SEPARATOR.to_string().as_str()).clone();
+        [
+            self.text.clone(),
+            self.starting_module.clone(),
+            self.request_topic.clone(),
+            Itertools::intersperse(
+                self.response_topics.iter()
+                    .cloned(), VEC_SEPARATOR.to_string()
+            ).collect(),
+            self.sender.clone(),
+            self.message_type.to_string()
+        ]
+            .into_iter()
+            .chain(params)
+            .collect::<Vec<String>>()
+            .join(MESSAGE_SEPARATOR.to_string().as_str()).clone()
     }
 
     /// decompress
@@ -168,7 +163,7 @@ impl Message {
             return params;
         };
 
-        return Ok(Message{
+        Ok(Message{
             text: get_field(0,"text")?.to_string(),
             starting_module: get_field(1,"starting_module")?.to_string(),
             request_topic: get_field(2,"request_topic")?.to_string(),
@@ -176,7 +171,7 @@ impl Message {
             sender: get_field(4,"sender")?.to_string(),
             message_type: get_field(5,"message_type")?.to_string().parse::<MessageType>().unwrap(),
             params: get_params(6)
-        });
+        })
     }
 
     pub fn reply(&self, text: String, message_type: MessageType) -> Result<(String, Self), crate::error::Error> {

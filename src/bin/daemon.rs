@@ -8,8 +8,8 @@ fn main() -> Result<(), Box<dyn Error>>{
     env_logger::init();
     info!("Loading daemon...");
     let config = alfred_rs::config::Config::read(None)?;
-    let pub_port = config.get_alfred_pub_port();
-    let sub_port = config.get_alfred_sub_port();
+    let pub_port = config.alfred.pub_port;
+    let sub_port = config.alfred.sub_port;
     let context = Context::new();
     let xpub_sub = context.socket(zmq2::XPUB).unwrap();
     let pub_xsub = context.socket(zmq2::XSUB).unwrap();

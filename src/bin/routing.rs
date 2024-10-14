@@ -19,12 +19,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
         warn!("Routing config is empty. Exiting.");
         return Ok(());
     }
-    let mut module = InterfaceModule::new(String::from("routing")).await?;
+    let mut module = InterfaceModule::new("routing").await?;
 
     let mut routing_hashmap = HashMap::new();
     for routing in routing_config.routing {
-        debug!("{} -> {}", routing.from_topic.clone(), routing.to_topic.clone());
-        module.listen(routing.from_topic.clone()).await?;
+        debug!("{} -> {}", routing.from_topic, routing.to_topic.clone());
+        module.listen(routing.from_topic.as_str()).await?;
         if !routing_hashmap.contains_key(&routing.from_topic) {
             routing_hashmap.insert(routing.from_topic.clone(), vec![]);
         }
@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let routing_message = routing_item.message.clone()
                 .map(|routing_message| routing_message.generate_message(&message))
                 .unwrap_or(message.clone());
-            module.send(routing_item.to_topic.clone(), &routing_message).await?
+            module.send(routing_item.to_topic.as_str(), &routing_message).await?
         }
     }
 }

@@ -11,9 +11,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let config = Config::read(Some("runner".into()))?;
     let modules = if args.len() == 1 {
         println!("Args is empty, loading from config.toml...");
-        let alfred_config = Config::read_alfred_config()?;
+        let alfred_config = Config::read(None)?.alfred;
         println!("{:?}", config);
-        alfred_config.get_modules().unwrap()
+        alfred_config.modules
     } else {
         println!("args is not empty: {:?}", args);
         args

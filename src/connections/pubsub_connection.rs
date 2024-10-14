@@ -16,7 +16,7 @@ pub struct AlfredSubscriber {
 }
 
 impl AlfredSubscriber {
-    pub async fn manage_module_info_request(&mut self, topic: &str, module_name: String, alfred_publisher: &mut AlfredPublisher) -> Result<bool, Error> {
+    pub async fn manage_module_info_request(&mut self, topic: &str, module_name: &str, alfred_publisher: &mut AlfredPublisher) -> Result<bool, Error> {
         if topic != MODULE_INFO_TOPIC_REQUEST { return Ok(false); }
         debug!("Received info request. Replying...");
         alfred_publisher.send_module_info(module_name).await?;
@@ -25,9 +25,9 @@ impl AlfredSubscriber {
 }
 
 impl Receiver for AlfredSubscriber {
-    async fn listen(&mut self, topic: String) -> Result<(), Error> {
+    async fn listen(&mut self, topic: &str) -> Result<(), Error> {
         debug!("Subscribing to topic {topic}");
-        self.subscriber.subscribe(topic.as_str()).await.map_err(|_| Error::SubscribeError(topic.clone()))
+        self.subscriber.subscribe(topic).await.map_err(|_| Error::SubscribeError(topic.to_string()))
     }
 
     async fn receive(&mut self) -> Result<(String, Message), Error> {
@@ -47,24 +47,24 @@ pub struct AlfredPublisher {
 }
 
 impl AlfredPublisher {
-    pub async fn send_module_info(&mut self, module_name: String) -> Result<(), Error> {
-        self.publish_str(MODULE_INFO_TOPIC_RESPONSE.to_string(), module_name).await
+    pub async fn send_module_info(&mut self, module_name: &str) -> Result<(), Error> {
+        self.publish_str(MODULE_INFO_TOPIC_RESPONSE, module_name).await
     }
 
-    async fn publish_str(&mut self, topic: String, message: String) -> Result<(), Error> {
-        let topic_bytes = Bytes::from(topic.clone());
-        let message_bytes = Bytes::from(message.clone());
+    async fn publish_str(&mut self, topic: &str, message: &str) -> Result<(), Error> {
+        let topic_bytes = Bytes::from(topic.to_string());
+        let message_bytes = Bytes::from(message.to_string());
         let zmq_message = vec![topic_bytes, message_bytes].try_into().or(Err(Error::ConversionError))?;
         debug!(" > {topic}: {message}");
-        self.publisher.send(zmq_message).await.map_err(|_| Error::PublishError(topic, message))
+        self.publisher.send(zmq_message).await.map_err(|_| Error::PublishError(topic.to_string(), message.to_string()))
     }
 
 }
 
 impl Sender for AlfredPublisher {
-    async fn send(&mut self, topic: String, message: &Message) -> Result<(), Error> {
+    async fn send(&mut self, topic: &str, message: &Message) -> Result<(), Error> {
         debug!("Publishing message {message} to topic {topic}...");
-        self.publish_str(topic, message.compress()).await
+        self.publish_str(topic, message.compress().as_str()).await
     }
 }
 
@@ -83,24 +83,24 @@ impl PubSubConnection {
         debug!("Connected as publisher");
         tokio::time::sleep(Duration::from_secs(1)).await;
         let mut connection = PubSubConnection { subscriber: AlfredSubscriber { subscriber }, publisher: AlfredPublisher { publisher } };
-        connection.listen(MODULE_INFO_TOPIC_REQUEST.to_string()).await?;
+        connection.listen(MODULE_INFO_TOPIC_REQUEST).await?;
         Ok(connection)
     }
 
-    pub async fn manage_module_info_request(&mut self, topic: &str, module_name: String) -> Result<bool, Error> {
+    pub async fn manage_module_info_request(&mut self, topic: &str, module_name: &str) -> Result<bool, Error> {
         self.subscriber.manage_module_info_request(topic, module_name, &mut self.publisher).await
     }
 }
 
 impl Receiver for PubSubConnection {
-    fn listen(&mut self, topic: String) -> impl Future<Output=Result<(), Error>> {
+    fn listen(&mut self, topic: &str) -> impl Future<Output=Result<(), Error>> {
         self.subscriber.listen(topic)
     }
 
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         loop {
             let (topic, message) = self.subscriber.receive().await?;
-            if self.manage_module_info_request(topic.as_str(), "".to_string()).await? {
+            if self.manage_module_info_request(topic.as_str(), "").await? {
                 continue;
             }
             return Ok((topic, message));
@@ -109,7 +109,7 @@ impl Receiver for PubSubConnection {
 }
 
 impl Sender for PubSubConnection {
-    fn send(&mut self, topic: String, message: &Message) -> impl Future<Output = Result<(), Error>> {
+    fn send(&mut self, topic: &str, message: &Message) -> impl Future<Output = Result<(), Error>> {
         self.publisher.send(topic, message)
     }
 }

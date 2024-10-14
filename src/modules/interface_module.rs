@@ -13,16 +13,17 @@ pub struct InterfaceModule {
 }
 
 impl InterfaceModule {
-    pub async fn new(module_name: String) -> Result<Self, Error> {
+    pub async fn new(module_name: &str) -> Result<Self, Error> {
         InterfaceModule::new_with_custom_config(
-            module_name.clone(),
-            Config::read(Some(module_name.clone()))?
+            module_name,
+            Config::read(Some(module_name))?
         ).await
     }
 
-    pub async fn new_with_custom_config(module_name: String, config: Config) -> Result<Self, Error> {
+    pub async fn new_with_custom_config(module_name: &str, config: Config) -> Result<Self, Error> {
         let mut connection = PubSubConnection::new(&config).await?;
-        connection.listen(MODULE_INFO_TOPIC_REQUEST.to_string()).await?;
+        connection.listen(MODULE_INFO_TOPIC_REQUEST).await?;
+        let module_name = module_name.to_string();
         Ok(Self { module_name, config, connection })
     }
 }
@@ -30,7 +31,7 @@ impl InterfaceModule {
 impl Module for InterfaceModule {}
 
 impl Receiver for InterfaceModule {
-    fn listen(&mut self, topic: String) -> impl Future<Output=Result<(), Error>> {
+    fn listen(&mut self, topic: &str) -> impl Future<Output=Result<(), Error>> {
         self.connection.subscriber.listen(topic)
     }
 
@@ -40,14 +41,14 @@ impl Receiver for InterfaceModule {
         let mut message: Message = Message::empty();
         while !received {
             (topic, message) = self.connection.subscriber.receive().await?;
-            received = !self.connection.manage_module_info_request(topic.as_str(), self.module_name.clone()).await?;
+            received = !self.connection.manage_module_info_request(topic.as_str(), self.module_name.as_str()).await?;
         }
         Ok((topic, message))
     }
 }
 
 impl Sender for InterfaceModule {
-    fn send(&mut self, topic: String, message: &Message) -> impl Future<Output=Result<(), Error>> {
+    fn send(&mut self, topic: &str, message: &Message) -> impl Future<Output=Result<(), Error>> {
         self.connection.publisher.send(topic, message)
     }
 }
