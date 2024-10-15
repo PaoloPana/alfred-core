@@ -76,9 +76,19 @@ struct FromFileConfig {
 }
 
 impl FromFileConfig {
+
+    fn get_config_filename() -> String {
+        match std::env::var("ALFRED_CONFIG") {
+            Ok(val) => {
+                if fs::exists(val.clone()).is_ok_and(|v| v) { val } else { CONFIG_FILENAME.to_string() }
+            },
+            Err(_) => CONFIG_FILENAME.to_string(),
+        }
+    }
+
     pub fn read() -> FromFileConfig {
         // TODO: remove expect
-        let contents = fs::read_to_string(CONFIG_FILENAME).expect("Could not read file");
+        let contents = fs::read_to_string(FromFileConfig::get_config_filename()).expect("Could not read file");
         toml::from_str(&contents).expect("Unable to load data")
     }
 }
