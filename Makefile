@@ -1,3 +1,5 @@
+LINT_PARAMS := $(shell cat .lints | cut -f1 -d"#" | tr '\n' ' ')
+
 build:
 	cargo build --bin daemon --features daemon
 	cargo build --bin routing --features routing
@@ -28,3 +30,6 @@ clean-target:
 	rm -rf target
 clean-bin:
 	rm -rf bin
+
+clippy:
+	cargo clippy --all-targets -- -D warnings $(LINT_PARAMS)

@@ -50,8 +50,8 @@ pub struct Routing {
 }
 
 impl Routing {
-    pub fn from_file() -> Result<Routing, Box<dyn Error>>{
+    pub fn from_file() -> Result<Self, Box<dyn Error>>{
         let contents = fs::read_to_string(ROUTING_FILENAME)?;
-        toml::from_str(&contents).map_err(|e| e.into())
+        toml::from_str(&contents).map_err(Into::into)
     }
 }

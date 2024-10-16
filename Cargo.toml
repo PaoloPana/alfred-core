@@ -3,6 +3,12 @@ name = "alfred-rs"
 version = "0.3.0"
 edition = "2021"
 authors = ["Paolo Panarese <panarese.paolo@gmail.com>"]
+description = "Alfred Rust Library"
+license = "AGPL-3"
+repository = "https://github.com/PaoloPana/alfred-rs"
+readme = "./README.md"
+keywords = ["framework", "multi-modal", "ai", "personal-assistant"]
+categories = ["development-tools", "command-line-utilities", "network-programming"]
 
 [dependencies]
 thiserror = "1.0"

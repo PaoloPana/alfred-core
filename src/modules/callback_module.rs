@@ -14,7 +14,7 @@ pub struct CallbackModule {
 
 impl CallbackModule {
     pub async fn new(module_name: &str) -> Result<Self, Error> {
-        let config = Config::read(Some(module_name))?;
+        let config = Config::read(Some(module_name));
         let mut connection = PubSubConnection::new(&config).await?;
         connection.listen(MODULE_INFO_TOPIC_REQUEST).await?;
         let module_name = module_name.to_string();
@@ -31,7 +31,7 @@ impl Receiver for CallbackModule {
 
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         let mut received = false;
-        let mut topic= "".to_string();
+        let mut topic = String::new();
         let mut message: Message = Message::empty();
         while !received {
             (topic, message) = self.connection.subscriber.receive().await?;
