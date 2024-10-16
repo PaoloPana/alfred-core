@@ -32,4 +32,4 @@ clean-bin:
 	rm -rf bin
 
 clippy:
-	cargo clippy --all-targets -- -D warnings $(LINT_PARAMS)
+	cargo clippy --all-targets --all-features -- -D warnings $(LINT_PARAMS)
