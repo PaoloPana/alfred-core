@@ -33,3 +33,6 @@ clean-bin:
 
 clippy:
 	cargo clippy --all-targets --all-features -- -D warnings $(LINT_PARAMS)
+
+clippy-fix:
+	cargo clippy --fix --all-targets --all-features -- -D warnings $(LINT_PARAMS)
