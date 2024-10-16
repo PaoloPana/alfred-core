@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
         routing_hashmap
             .get_mut(&routing.from_topic)
-            .expect(format!("Unable to insert new routing with key {}", routing.from_topic).as_str())
+            .unwrap_or_else(|| panic!("Unable to insert new routing with key {}", routing.from_topic))
             .push(routing);
     }
     loop {
@@ -39,8 +39,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         for routing_item in routing_items.unwrap_or(&Vec::new()) {
             let routing_message = routing_item.message.clone()
-                .map(|routing_message| routing_message.generate_message(&message))
-                .unwrap_or(message.clone());
+                .map_or_else(|| message.clone(), |routing_message| routing_message.generate_message(&message));
             module.send(routing_item.to_topic.as_str(), &routing_message).await?;
         }
     }

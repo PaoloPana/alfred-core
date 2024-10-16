@@ -23,12 +23,12 @@ impl RoutingMessage {
 
     pub fn generate_message(&self, default: &Message) -> Message {
         Message {
-            text: self.text.clone().unwrap_or(default.text.clone()),
-            starting_module: self.starting_module.clone().unwrap_or(default.starting_module.clone()),
-            request_topic: self.request_topic.clone().unwrap_or(default.request_topic.clone()),
-            response_topics: self.response_topics.clone().unwrap_or(default.response_topics.clone()),
-            sender: self.sender.clone().unwrap_or(default.sender.clone()),
-            message_type: self.message_type.clone().unwrap_or(default.message_type.clone()),
+            text: self.text.clone().unwrap_or_else(|| default.text.clone()),
+            starting_module: self.starting_module.clone().unwrap_or_else(|| default.starting_module.clone()),
+            request_topic: self.request_topic.clone().unwrap_or_else(|| default.request_topic.clone()),
+            response_topics: self.response_topics.clone().unwrap_or_else(|| default.response_topics.clone()),
+            sender: self.sender.clone().unwrap_or_else(|| default.sender.clone()),
+            message_type: self.message_type.clone().unwrap_or_else(|| default.message_type.clone()),
             params: default.params.clone(),
         }
     }

@@ -16,7 +16,7 @@ pub struct Config {
 impl Config {
     pub fn read(module_name: Option<&str>) -> Self {
         let alfred = Self::read_alfred_config();
-        let module = module_name.map_or(HashMap::new(), Self::read_module_config);
+        let module = module_name.map_or_else(HashMap::new, Self::read_module_config);
         Self { alfred, module }
     }
 
@@ -25,9 +25,7 @@ impl Config {
         let table: Table = contents.parse().expect("Could not parse toml file");
         table.get(&module_name.to_string())
             .and_then(Value::as_table)
-            .map_or(
-                HashMap::new(),
-                |module_config| module_config
+            .map_or_else(HashMap::new, |module_config| module_config
                 .iter()
                 .map(|(k, v)| (k.to_string(), v.as_str().unwrap_or("").to_string()))
                 .collect())
@@ -41,7 +39,7 @@ impl Config {
         let sub_port = from_env.alfred.sub_port.unwrap_or(from_file_config.alfred.sub_port);
         let tmp_dir = from_env.alfred.tmp_dir
             .or(from_file_config.alfred.tmp_dir)
-            .unwrap_or(std::env::current_dir().expect("Error trying to retrieve the tmp directory").display().to_string());
+            .unwrap_or_else(|| std::env::current_dir().expect("Error trying to retrieve the tmp directory").display().to_string());
         AlfredConfig { url, pub_port, sub_port, tmp_dir, modules: from_file_config.alfred.modules }
     }
 
@@ -76,7 +74,7 @@ impl FromFileConfig {
         std::env::var("ALFRED_CONFIG")
             .ok()
             .and_then(|path| fs::exists(path.clone()).ok().map(|_| path) )
-            .unwrap_or(CONFIG_FILENAME.to_string())
+            .unwrap_or_else(|| CONFIG_FILENAME.to_string())
     }
 
     fn read() -> Self {

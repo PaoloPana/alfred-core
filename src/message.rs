@@ -132,7 +132,7 @@ impl Message {
         let get_vec = |index :usize, field_name: &str| {
             Ok(ser_msg
                 .get(index)
-                .ok_or(MessageCompressionError::FieldNotFound(field_name.to_string()))?
+                .ok_or_else(|| MessageCompressionError::FieldNotFound(field_name.to_string()))?
                 .split(VEC_SEPARATOR)
                 .map(ToString::to_string)
                 .collect::<LinkedList<String>>())

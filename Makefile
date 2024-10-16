@@ -35,4 +35,4 @@ clippy:
 	cargo clippy --all-targets --all-features -- -D warnings $(LINT_PARAMS)
 
 clippy-fix:
-	cargo clippy --fix --all-targets --all-features -- -D warnings $(LINT_PARAMS)
+	__CARGO_FIX_YOLO=1 cargo clippy --fix --allow-staged --all-targets --all-features -- -D warnings $(LINT_PARAMS)
