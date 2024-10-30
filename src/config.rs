@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use serde_derive::Deserialize;
 use std::fs;
+use std::path::Path;
 use toml;
 use envconfig::Envconfig;
 use toml::{Table, Value};
@@ -73,7 +74,7 @@ impl FromFileConfig {
     fn get_config_filename() -> String {
         std::env::var("ALFRED_CONFIG")
             .ok()
-            .and_then(|path| fs::exists(path.clone()).ok().map(|_| path) )
+            .and_then(|path| Path::new(&path.as_str()).exists().then(move || path))
             .unwrap_or_else(|| CONFIG_FILENAME.to_string())
     }
 
