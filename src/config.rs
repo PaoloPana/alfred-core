@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use serde_derive::Deserialize;
 use std::fs;
+use std::path::Path;
 use toml;
 use envconfig::Envconfig;
-use toml::Table;
-use crate::error::Error;
+use toml::{Table, Value};
 
 pub const CONFIG_FILENAME: &str = "config.toml";
 
@@ -15,39 +15,33 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn read(module_name: Option<&str>) -> Result<Config, Error> {
-        let alfred = Self::read_alfred_config()?;
-        let module = Self::read_module_config(module_name)?;
-        Ok(Config { alfred, module })
+    pub fn read(module_name: Option<&str>) -> Self {
+        let alfred = Self::read_alfred_config();
+        let module = module_name.map_or_else(HashMap::new, Self::read_module_config);
+        Self { alfred, module }
     }
 
-    fn read_module_config(module_name: Option<&str>) -> Result<HashMap<String, String>, Error> {
-        if module_name.is_none() {
-            return Ok(HashMap::new());
-        }
+    fn read_module_config(module_name: &str) -> HashMap<String, String> {
         let contents = fs::read_to_string(CONFIG_FILENAME).expect("Could not read file");
-        let table: Table = contents.parse().unwrap();
-        let module_config = table.get(&module_name.unwrap().to_string())
-            .map(|val| val.as_table()).unwrap_or(None);
-        if module_config.is_none() {
-            return Ok(HashMap::new());
-        }
-        let module_config = module_config.unwrap();
-        let mut res = HashMap::new();
-        for (k, v) in module_config.into_iter() {
-            res.insert(k.to_string(), v.as_str().unwrap().to_string());
-        }
-        Ok(res)
+        let table: Table = contents.parse().expect("Could not parse toml file");
+        table.get(&module_name.to_string())
+            .and_then(Value::as_table)
+            .map_or_else(HashMap::new, |module_config| module_config
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.as_str().unwrap_or("").to_string()))
+                .collect())
     }
 
-    fn read_alfred_config() -> Result<AlfredConfig, Error> {
+    fn read_alfred_config() -> AlfredConfig {
         let from_env = EnvConfig::from_env();
         let from_file_config = FromFileConfig::read();
         let url = from_env.alfred.url.unwrap_or(from_file_config.alfred.url);
         let pub_port = from_env.alfred.pub_port.unwrap_or(from_file_config.alfred.pub_port);
         let sub_port = from_env.alfred.sub_port.unwrap_or(from_file_config.alfred.sub_port);
-        let tmp_dir = from_env.alfred.tmp_dir.unwrap_or(from_file_config.alfred.tmp_dir.unwrap_or(format!("{}", std::env::current_dir().unwrap().display())));
-        Ok(AlfredConfig { url, pub_port, sub_port, tmp_dir, modules: from_file_config.alfred.modules })
+        let tmp_dir = from_env.alfred.tmp_dir
+            .or(from_file_config.alfred.tmp_dir)
+            .unwrap_or_else(|| std::env::current_dir().expect("Error trying to retrieve the tmp directory").display().to_string());
+        AlfredConfig { url, pub_port, sub_port, tmp_dir, modules: from_file_config.alfred.modules }
     }
 
     pub fn get_alfred_pub_url(&self) -> String {
@@ -78,17 +72,14 @@ struct FromFileConfig {
 impl FromFileConfig {
 
     fn get_config_filename() -> String {
-        match std::env::var("ALFRED_CONFIG") {
-            Ok(val) => {
-                if fs::exists(val.clone()).is_ok_and(|v| v) { val } else { CONFIG_FILENAME.to_string() }
-            },
-            Err(_) => CONFIG_FILENAME.to_string(),
-        }
+        std::env::var("ALFRED_CONFIG")
+            .ok()
+            .and_then(|path| Path::new(&path.as_str()).exists().then_some(path))
+            .unwrap_or_else(|| CONFIG_FILENAME.to_string())
     }
 
-    pub fn read() -> FromFileConfig {
-        // TODO: remove expect
-        let contents = fs::read_to_string(FromFileConfig::get_config_filename()).expect("Could not read file");
+    fn read() -> Self {
+        let contents = fs::read_to_string(Self::get_config_filename()).expect("Could not read file");
         toml::from_str(&contents).expect("Unable to load data")
     }
 }
@@ -109,9 +100,9 @@ struct EnvConfig {
 }
 impl EnvConfig {
 
-    pub fn from_env() -> EnvConfig {
-        EnvConfig {
-            alfred: EnvAlfredConfig::init_from_env().unwrap()
+    fn from_env() -> Self {
+        Self {
+            alfred: EnvAlfredConfig::init_from_env().expect("Error during initialization using env variable"),
         }
     }
 }

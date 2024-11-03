@@ -14,9 +14,9 @@ pub struct InterfaceModule {
 
 impl InterfaceModule {
     pub async fn new(module_name: &str) -> Result<Self, Error> {
-        InterfaceModule::new_with_custom_config(
+        Self::new_with_custom_config(
             module_name,
-            Config::read(Some(module_name))?
+            Config::read(Some(module_name))
         ).await
     }
 
@@ -37,7 +37,7 @@ impl Receiver for InterfaceModule {
 
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         let mut received = false;
-        let mut topic= "".to_string();
+        let mut topic = String::new();
         let mut message: Message = Message::empty();
         while !received {
             (topic, message) = self.connection.subscriber.receive().await?;

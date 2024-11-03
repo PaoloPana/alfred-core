@@ -7,8 +7,9 @@ use crate::error::MessageCompressionError;
 const MESSAGE_SEPARATOR : char = 0x0 as char;
 const VEC_SEPARATOR : char = 0xFF as char;
 
-#[derive(Debug, PartialEq, Copy, Clone, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Deserialize, Default)]
 pub enum MessageType {
+    #[default]
     UNKNOWN,
     TEXT,
     AUDIO,
@@ -20,27 +21,27 @@ impl FromStr for MessageType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
-            "UNKNOWN" => MessageType::UNKNOWN,
-            "TEXT" => MessageType::TEXT,
-            "AUDIO" => MessageType::AUDIO,
-            "PHOTO" => MessageType::PHOTO,
-            _ => Err(format!("{} is not a valid MessageType.", s))?
+            "UNKNOWN" => Self::UNKNOWN,
+            "TEXT" => Self::TEXT,
+            "AUDIO" => Self::AUDIO,
+            "PHOTO" => Self::PHOTO,
+            _ => Err(format!("{s} is not a valid MessageType."))?
         })
     }
 }
 
 impl fmt::Display for MessageType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", match self {
-            MessageType::UNKNOWN => "UNKNOWN",
-            MessageType::TEXT => "TEXT",
-            MessageType::AUDIO => "AUDIO",
-            MessageType::PHOTO => "PHOTO",
+            Self::UNKNOWN => "UNKNOWN",
+            Self::TEXT => "TEXT",
+            Self::AUDIO => "AUDIO",
+            Self::PHOTO => "PHOTO",
         })
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Default)]
 pub struct Message {
     pub text: String,
     pub starting_module: String,
@@ -51,28 +52,9 @@ pub struct Message {
     pub params: HashMap<String, String, RandomState>,
 }
 
-impl Default for Message {
-    fn default() -> Self {
+impl Clone for Message {
+    fn clone(&self) -> Self {
         Self {
-            text: String::from(""),
-            starting_module: String::from(""),
-            request_topic: String::from(""),
-            response_topics: LinkedList::new(),
-            sender: String::from(""),
-            message_type: MessageType::UNKNOWN,
-            params: HashMap::new()
-        }
-    }
-}
-
-impl Message {
-
-    pub fn empty() -> Self {
-        Message::default()
-    }
-
-    pub fn clone(&self) -> Self {
-        Message {
             text: self.text.clone(),
             starting_module: self.starting_module.clone(),
             request_topic: self.request_topic.clone(),
@@ -81,6 +63,13 @@ impl Message {
             message_type: self.message_type.clone(),
             params: self.params.clone(),
         }
+    }
+}
+
+impl Message {
+
+    pub fn empty() -> Self {
+        Self::default()
     }
 
     pub fn compress(&self) -> String {
@@ -101,7 +90,7 @@ impl Message {
             .into_iter()
             .chain(params)
             .collect::<Vec<String>>()
-            .join(MESSAGE_SEPARATOR.to_string().as_str()).clone()
+            .join(MESSAGE_SEPARATOR.to_string().as_str())
     }
 
     /// decompress
@@ -134,42 +123,42 @@ impl Message {
         let binding = comp_str.to_string();
         let ser_msg = binding.split(MESSAGE_SEPARATOR).collect::<Vec<&str>>();
 
-        let get_field = |index :usize, field_name: &str| {
+        let get_field = |index :usize, default: String| {
             ser_msg
-                .get(index)
-                .ok_or(MessageCompressionError::FieldNotFound(field_name.to_string()))
+                .get(index).copied()
+                .map_or(default, ToString::to_string)
         };
 
         let get_vec = |index :usize, field_name: &str| {
             Ok(ser_msg
                 .get(index)
-                .ok_or(MessageCompressionError::FieldNotFound(field_name.to_string()))?
+                .ok_or_else(|| MessageCompressionError::FieldNotFound(field_name.to_string()))?
                 .split(VEC_SEPARATOR)
-                .map(|val| val.to_string())
+                .map(ToString::to_string)
                 .collect::<LinkedList<String>>())
         };
 
         let get_params = |start: usize| {
-            let mut param_name = "".to_string();
+            let mut param_name = String::new();
             let mut params: HashMap<String, String> = HashMap::new();
-            for i in start..ser_msg.len() {
-                let param = ser_msg.get(i).unwrap().to_string();
+            for (i, param) in ser_msg.iter().enumerate().skip(start) {
                 if i % 2 == 0 {
-                    param_name = param;
+                    param_name = (*param).to_string();
                 } else {
-                    params.insert(param_name.clone(), param);
+                    params.insert(param_name.clone(), (*param).to_string());
                 }
             }
-            return params;
+            params
         };
 
-        Ok(Message{
-            text: get_field(0,"text")?.to_string(),
-            starting_module: get_field(1,"starting_module")?.to_string(),
-            request_topic: get_field(2,"request_topic")?.to_string(),
+        Ok(Self{
+            text: get_field(0, String::new()),
+            starting_module: get_field(1, String::new()),
+            request_topic: get_field(2, String::new()),
             response_topics: get_vec(3,"response_topics")?,
-            sender: get_field(4,"sender")?.to_string(),
-            message_type: get_field(5,"message_type")?.to_string().parse::<MessageType>().unwrap(),
+            sender: get_field(4, String::new()),
+            message_type: get_field(5, MessageType::default().to_string()).parse::<MessageType>()
+                .or(Err(MessageCompressionError::DecompressionError()))?,
             params: get_params(6)
         })
     }
@@ -177,14 +166,14 @@ impl Message {
     pub fn reply(&self, text: String, message_type: MessageType) -> Result<(String, Self), crate::error::Error> {
         let mut response_topics = self.response_topics.clone();
         let topic = response_topics.pop_front().ok_or(crate::error::Error::ReplyError)?;
-        let response = Message {
+        let response = Self {
             text,
             starting_module: self.starting_module.clone(),
             request_topic: self.request_topic.clone(),
             response_topics,
             sender: self.sender.clone(),
             message_type,
-            params: Default::default(),
+            params: HashMap::default(),
         };
         Ok((topic, response))
     }

@@ -14,9 +14,9 @@ pub struct ServiceModule {
 
 impl ServiceModule {
     pub async fn new(module_name: &str) -> Result<Self, Error> {
-        ServiceModule::new_with_custom_config(
+        Self::new_with_custom_config(
             module_name,
-            Config::read(Some(module_name))?
+            Config::read(Some(module_name))
         ).await
     }
 
@@ -37,7 +37,7 @@ impl Receiver for ServiceModule {
 
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         let mut received = false;
-        let mut topic= "".to_string();
+        let mut topic = String::new();
         let mut message = Message::empty();
         while !received {
             (topic, message) = self.connection.subscriber.receive().await?;

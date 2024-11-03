@@ -28,13 +28,13 @@ pub enum Error {
 
 impl From<MessageCompressionError> for Error {
     fn from(value: MessageCompressionError) -> Self {
-        Error::MessageCompressionError(value.to_string())
+        Self::MessageCompressionError(value.to_string())
     }
 }
 
 impl From<ZmqError> for Error {
     fn from(value: ZmqError) -> Self {
-        Error::ZmqError(value)
+        Self::ZmqError(value)
     }
 }
 
@@ -44,5 +44,7 @@ pub enum MessageCompressionError{
     #[error("field {0} not found!")]
     FieldNotFound(String),
     #[error("message type {0} not found!")]
-    MessageType(String)
+    MessageType(String),
+    #[error("error during decompression")]
+    DecompressionError()
 }

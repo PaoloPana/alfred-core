@@ -9,13 +9,13 @@ use alfred_rs::router_config::Routing;
 async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     info!("Loading routing module...");
-    let routing_config = Routing::from_file().map_or(None, |conf| Some(conf));
+    let routing_config = Routing::from_file().ok();
     if routing_config.is_none() {
         warn!("No routing found. Exiting.");
         return Ok(());
     }
-    let routing_config = routing_config.unwrap();
-    if routing_config.routing.len() == 0 {
+    let routing_config = routing_config.expect("No routing config found");
+    if routing_config.routing.is_empty() {
         warn!("Routing config is empty. Exiting.");
         return Ok(());
     }
@@ -28,20 +28,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
         if !routing_hashmap.contains_key(&routing.from_topic) {
             routing_hashmap.insert(routing.from_topic.clone(), vec![]);
         }
-        routing_hashmap.get_mut(&routing.from_topic).unwrap().push(routing);
+        routing_hashmap
+            .get_mut(&routing.from_topic)
+            .unwrap_or_else(|| panic!("Unable to insert new routing with key {}", routing.from_topic))
+            .push(routing);
     }
     loop {
         let (topic, message) = module.receive().await?;
         let routing_items = routing_hashmap.get(&topic);
-        if routing_items.is_none() {
-            continue;
-        }
-        let routing_items = routing_items.unwrap();
-        for routing_item in routing_items {
+
+        for routing_item in routing_items.unwrap_or(&Vec::new()) {
             let routing_message = routing_item.message.clone()
-                .map(|routing_message| routing_message.generate_message(&message))
-                .unwrap_or(message.clone());
-            module.send(routing_item.to_topic.as_str(), &routing_message).await?
+                .map_or_else(|| message.clone(), |routing_message| routing_message.generate_message(&message));
+            module.send(routing_item.to_topic.as_str(), &routing_message).await?;
         }
     }
 }

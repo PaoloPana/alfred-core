@@ -1,7 +1,7 @@
 use std::future::Future;
 use std::time::Duration;
 use bytes::Bytes;
-use zeromq::{Socket, SocketRecv, SocketSend};
+use zeromq::{Socket, SocketRecv, SocketSend, ZmqMessage};
 use crate::config::Config;
 use crate::message::Message;
 use crate::error::Error;
@@ -22,6 +22,10 @@ impl AlfredSubscriber {
         alfred_publisher.send_module_info(module_name).await?;
         Ok(true)
     }
+
+    fn get_slice_from_message(zmq_message: &ZmqMessage, index: usize) -> Result<String, Error> {
+        String::from_utf8(zmq_message.get(index).ok_or(Error::GetMessageError)?.to_vec()).or(Err(Error::ConversionError))
+    }
 }
 
 impl Receiver for AlfredSubscriber {
@@ -33,8 +37,8 @@ impl Receiver for AlfredSubscriber {
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         let zmq_message = self.subscriber.recv().await.map_err(|_| Error::GetMessageError)?;
         debug!("New message received.");
-        let topic_string = String::from_utf8(zmq_message.get(0).unwrap().to_vec()).map_err(|_| Error::ConversionError)?;
-        let msg_string = String::from_utf8(zmq_message.get(1).unwrap().to_vec()).map_err(|_| Error::ConversionError)?;
+        let topic_string = Self::get_slice_from_message(&zmq_message, 0)?;
+        let msg_string = Self::get_slice_from_message(&zmq_message, 1)?;
 
         let message = Message::decompress(msg_string.as_str())?;
         debug!("{topic_string}: {message}");
@@ -74,7 +78,7 @@ pub struct PubSubConnection {
 }
 
 impl PubSubConnection {
-    pub async fn new(config: &Config) -> Result<PubSubConnection, Error> {
+    pub async fn new(config: &Config) -> Result<Self, Error> {
         let mut subscriber = zeromq::SubSocket::new();
         subscriber.connect(config.get_alfred_sub_url().as_str()).await?;
         debug!("Connected as subscriber");
@@ -82,7 +86,7 @@ impl PubSubConnection {
         publisher.connect(config.get_alfred_pub_url().as_str()).await?;
         debug!("Connected as publisher");
         tokio::time::sleep(Duration::from_secs(1)).await;
-        let mut connection = PubSubConnection { subscriber: AlfredSubscriber { subscriber }, publisher: AlfredPublisher { publisher } };
+        let mut connection = Self { subscriber: AlfredSubscriber { subscriber }, publisher: AlfredPublisher { publisher } };
         connection.listen(MODULE_INFO_TOPIC_REQUEST).await?;
         Ok(connection)
     }
