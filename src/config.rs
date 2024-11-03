@@ -74,7 +74,7 @@ impl FromFileConfig {
     fn get_config_filename() -> String {
         std::env::var("ALFRED_CONFIG")
             .ok()
-            .and_then(|path| Path::new(&path.as_str()).exists().then(move || path))
+            .and_then(|path| Path::new(&path.as_str()).exists().then_some(path))
             .unwrap_or_else(|| CONFIG_FILENAME.to_string())
     }
 
