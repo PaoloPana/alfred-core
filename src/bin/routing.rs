@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use alfred_rs::log::{debug, info, warn};
 use alfred_rs::connection::{Receiver, Sender};
-use alfred_rs::interface_module::InterfaceModule;
+use alfred_rs::AlfredModule;
 use alfred_rs::router_config::Routing;
 
 #[tokio::main]
@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         warn!("Routing config is empty. Exiting.");
         return Ok(());
     }
-    let mut module = InterfaceModule::new("routing").await?;
+    let mut module = AlfredModule::new("routing").await?;
 
     let mut routing_hashmap = HashMap::new();
     for routing in routing_config.routing {

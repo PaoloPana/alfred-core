@@ -1,9 +1,10 @@
+use std::collections::HashMap;
 use std::future::Future;
 use std::time::Duration;
 use bytes::Bytes;
 use zeromq::{Socket, SocketRecv, SocketSend, ZmqMessage};
 use crate::config::Config;
-use crate::message::Message;
+use crate::message::{Message, MessageType};
 use crate::error::Error;
 use log::debug;
 use crate::connections::connection::{Receiver, Sender};
@@ -16,10 +17,10 @@ pub struct AlfredSubscriber {
 }
 
 impl AlfredSubscriber {
-    pub async fn manage_module_info_request(&mut self, topic: &str, module_name: &str, alfred_publisher: &mut AlfredPublisher) -> Result<bool, Error> {
+    pub async fn manage_module_info_request(&mut self, topic: &str, module_name: &str, capabilities: &HashMap<String, String>, alfred_publisher: &mut AlfredPublisher) -> Result<bool, Error> {
         if topic != MODULE_INFO_TOPIC_REQUEST { return Ok(false); }
         debug!("Received info request. Replying...");
-        alfred_publisher.send_module_info(module_name).await?;
+        alfred_publisher.send_module_info(module_name, capabilities).await?;
         Ok(true)
     }
 
@@ -51,8 +52,14 @@ pub struct AlfredPublisher {
 }
 
 impl AlfredPublisher {
-    pub async fn send_module_info(&mut self, module_name: &str) -> Result<(), Error> {
-        self.publish_str(MODULE_INFO_TOPIC_RESPONSE, module_name).await
+    pub async fn send_module_info(&mut self, module_name: &str, capabilities: &HashMap<String, String>) -> Result<(), Error> {
+        let info_msg = Message {
+            text: module_name.to_string(),
+            message_type: MessageType::Text,
+            params: capabilities.clone(),
+            ..Message::default()
+        };
+        self.send(MODULE_INFO_TOPIC_RESPONSE, &info_msg).await
     }
 
     async fn publish_str(&mut self, topic: &str, message: &str) -> Result<(), Error> {
@@ -91,8 +98,8 @@ impl PubSubConnection {
         Ok(connection)
     }
 
-    pub async fn manage_module_info_request(&mut self, topic: &str, module_name: &str) -> Result<bool, Error> {
-        self.subscriber.manage_module_info_request(topic, module_name, &mut self.publisher).await
+    pub async fn manage_module_info_request(&mut self, topic: &str, module_name: &str, capabilities: &HashMap<String, String>) -> Result<bool, Error> {
+        self.subscriber.manage_module_info_request(topic, module_name, capabilities, &mut self.publisher).await
     }
 }
 
@@ -104,7 +111,7 @@ impl Receiver for PubSubConnection {
     async fn receive(&mut self) -> Result<(String, Message), Error> {
         loop {
             let (topic, message) = self.subscriber.receive().await?;
-            if self.manage_module_info_request(topic.as_str(), "").await? {
+            if self.manage_module_info_request(topic.as_str(), "", &HashMap::new()).await? {
                 continue;
             }
             return Ok((topic, message));

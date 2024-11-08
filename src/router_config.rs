@@ -6,9 +6,7 @@ use crate::message::{Message, MessageType};
 
 const ROUTING_FILENAME: &str = "routing.toml";
 
-#[derive(Deserialize)]
-#[derive(Clone)]
-#[derive(Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct RoutingMessage {
     pub text: Option<String>,
     pub starting_module: Option<String>,

@@ -10,10 +10,11 @@ const VEC_SEPARATOR : char = 0xFF as char;
 #[derive(Debug, PartialEq, Eq, Clone, Deserialize, Default)]
 pub enum MessageType {
     #[default]
-    UNKNOWN,
-    TEXT,
-    AUDIO,
-    PHOTO
+    Unknown,
+    Text,
+    Audio,
+    Photo,
+    ModuleInfo
 }
 
 impl FromStr for MessageType {
@@ -21,10 +22,11 @@ impl FromStr for MessageType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
-            "UNKNOWN" => Self::UNKNOWN,
-            "TEXT" => Self::TEXT,
-            "AUDIO" => Self::AUDIO,
-            "PHOTO" => Self::PHOTO,
+            "Unknown" => Self::Unknown,
+            "Text" => Self::Text,
+            "Audio" => Self::Audio,
+            "Photo" => Self::Photo,
+            "ModuleInfo" => Self::ModuleInfo,
             _ => Err(format!("{s} is not a valid MessageType."))?
         })
     }
@@ -33,10 +35,11 @@ impl FromStr for MessageType {
 impl fmt::Display for MessageType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", match self {
-            Self::UNKNOWN => "UNKNOWN",
-            Self::TEXT => "TEXT",
-            Self::AUDIO => "AUDIO",
-            Self::PHOTO => "PHOTO",
+            Self::Unknown => "Unknown",
+            Self::Text => "Text",
+            Self::Audio => "Audio",
+            Self::Photo => "Photo",
+            Self::ModuleInfo => "ModuleInfo"
         })
     }
 }
