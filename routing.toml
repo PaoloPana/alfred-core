@@ -3,7 +3,7 @@ from_topic = "event.wake-word.triggered"
 to_topic = "mic"
 [routing.message]
 text = "-"
-message_type = "TEXT"
+message_type = "Text"
 response_topics = [
     "stt",
     "chat",
