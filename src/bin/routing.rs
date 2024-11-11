@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::error::Error;
 use alfred_rs::log::{debug, info, warn};
-use alfred_rs::connection::{Receiver, Sender};
 use alfred_rs::AlfredModule;
 use alfred_rs::router_config::Routing;
 
