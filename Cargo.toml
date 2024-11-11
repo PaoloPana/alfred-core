@@ -11,7 +11,7 @@ keywords = ["framework", "multi-modal", "ai", "personal-assistant"]
 categories = ["development-tools", "command-line-utilities", "network-programming"]
 
 [dependencies]
-thiserror = "1.0"
+thiserror = "2.0"
 tokio = { version = "1.40", features = ["time"] }
 zeromq = "0.4"
 bytes = "1.7"
