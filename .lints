@@ -32,6 +32,8 @@
 -W clippy::expect_fun_call
 -A clippy::module_name_repetitions
 -A clippy::must_use_candidate # not accurate
+-A unreachable_pub
+-A clippy::redundant_pub_crate
 
 -A clippy::missing_errors_doc
 
@@ -39,5 +41,4 @@
 # -A clippy::manual_filter_map # generally less clear
 # -A clippy::missing_const_for_fn # not necessary each time it's possible
 # -A clippy::multiple_crate_versions # cannot be easily fixed
-# -A clippy::redundant_pub_crate # not working well for now
 # -A clippy::wildcard_imports # more convenient for tests

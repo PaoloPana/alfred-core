@@ -10,7 +10,7 @@ pub(crate) struct AlfredSubscriber {
 
 impl AlfredSubscriber {
 
-    pub async fn new(url: &str) -> Result<Self, Error> {
+    pub(crate) async fn new(url: &str) -> Result<Self, Error> {
         let mut subscriber = zeromq::SubSocket::new();
         subscriber.connect(url).await?;
         Ok(Self { subscriber })
@@ -43,7 +43,7 @@ pub(crate) struct AlfredPublisher {
 
 impl AlfredPublisher {
 
-    pub async fn new(url: &str) -> Result<Self, Error> {
+    pub(crate) async fn new(url: &str) -> Result<Self, Error> {
         let mut publisher = zeromq::PubSocket::new();
         publisher.connect(url).await?;
         Ok(Self { publisher })
