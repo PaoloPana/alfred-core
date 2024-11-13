@@ -1,8 +1,33 @@
 use std::collections::HashMap;
 use std::error::Error;
+use std::fs;
+use serde_derive::Deserialize;
 use alfred_rs::log::{debug, info, warn};
 use alfred_rs::AlfredModule;
-use alfred_rs::router_config::Routing;
+use alfred_rs::config_message::ConfigMessage;
+
+const ROUTING_FILENAME: &str = "routing.toml";
+
+#[derive(Deserialize)]
+#[derive(Debug)]
+pub struct RoutingItem {
+    pub from_topic: String,
+    pub to_topic: String,
+    pub message: Option<ConfigMessage>
+}
+
+#[derive(Deserialize)]
+#[derive(Debug)]
+pub struct Routing {
+    pub routing: Vec<RoutingItem>
+}
+
+impl Routing {
+    pub fn from_file() -> Result<Self, Box<dyn Error>>{
+        let contents = fs::read_to_string(ROUTING_FILENAME)?;
+        toml::from_str(&contents).map_err(Into::into)
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

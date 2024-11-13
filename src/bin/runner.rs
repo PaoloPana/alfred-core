@@ -5,19 +5,19 @@ use alfred_rs::config::Config;
 use std::process::Command;
 
 #[cfg(feature = "runner")]
-#[allow(clippy::print_stdout,clippy::use_debug)]
+#[allow(clippy::use_debug)]
 fn main() {
     let args: Vec<String> = env::args().collect();
     let config = Config::read(Some("runner"));
     let modules = if args.len() == 1 {
-        println!("Args is empty, loading from config.toml...");
+        info!("Args is empty, loading from config.toml...");
         let alfred_config = Config::read(None).alfred;
         alfred_config.modules
     } else {
-        println!("args is not empty: {args:?}");
+        info!("args is not empty: {args:?}");
         args
     };
-    println!("{modules:?}");
+    info!("{modules:?}");
     let rust_log_env = config.get_module_value("log")
         .map_or(
             String::new(),

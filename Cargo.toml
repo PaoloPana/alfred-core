@@ -12,9 +12,9 @@ categories = ["development-tools", "command-line-utilities", "network-programmin
 
 [dependencies]
 thiserror = "2.0"
-tokio = { version = "1.40", features = ["time"] }
+tokio = { version = "1.41", features = ["time", "rt", "rt-multi-thread", "macros"] }
 zeromq = "0.4"
-bytes = "1.7"
+bytes = "1.8"
 toml = "0.8"
 serde = "1.0"
 serde_derive = "1.0"
@@ -23,11 +23,15 @@ itertools = "0.13"
 log = "0.4"
 zmq2 = { version = "0.5", optional = true }
 env_logger = { version = "0.11", optional = true }
+cron = { version = "0.13.0", optional = true }
+chrono = { version = "0.4.38", optional = true}
 
 [features]
 daemon = ["dep:zmq2", "dep:env_logger"]
 routing = ["dep:env_logger"]
 runner = ["dep:env_logger"]
+cron = ["dep:env_logger", "dep:cron", "dep:chrono"]
+logs = ["dep:env_logger"]
 
 [lib]
 name = "alfred_rs"
@@ -49,3 +53,13 @@ required-features = ["routing"]
 name = "runner"
 path = "src/bin/runner.rs"
 required-features = ["runner"]
+
+[[bin]]
+name = "cron"
+path = "src/bin/cron.rs"
+required-features = ["cron"]
+
+[[bin]]
+name = "logs"
+path = "src/bin/logs.rs"
+required-features = ["logs"]

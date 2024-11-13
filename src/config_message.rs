@@ -1,13 +1,9 @@
 use std::collections::LinkedList;
-use std::error::Error;
-use std::fs;
 use serde_derive::Deserialize;
 use crate::message::{Message, MessageType};
 
-const ROUTING_FILENAME: &str = "routing.toml";
-
 #[derive(Deserialize, Clone, Debug)]
-pub struct RoutingMessage {
+pub struct ConfigMessage {
     pub text: Option<String>,
     pub starting_module: Option<String>,
     pub request_topic: Option<String>,
@@ -17,8 +13,7 @@ pub struct RoutingMessage {
     // TODO: implement pub params: Option<HashMap<String, String, RandomState>>,
 }
 
-impl RoutingMessage {
-
+impl ConfigMessage {
     pub fn generate_message(&self, default: &Message) -> Message {
         Message {
             text: self.text.clone().unwrap_or_else(|| default.text.clone()),
@@ -29,27 +24,5 @@ impl RoutingMessage {
             message_type: self.message_type.clone().unwrap_or_else(|| default.message_type.clone()),
             params: default.params.clone(),
         }
-    }
-
-}
-
-#[derive(Deserialize)]
-#[derive(Debug)]
-pub struct RoutingItem {
-    pub from_topic: String,
-    pub to_topic: String,
-    pub message: Option<RoutingMessage>
-}
-
-#[derive(Deserialize)]
-#[derive(Debug)]
-pub struct Routing {
-    pub routing: Vec<RoutingItem>
-}
-
-impl Routing {
-    pub fn from_file() -> Result<Self, Box<dyn Error>>{
-        let contents = fs::read_to_string(ROUTING_FILENAME)?;
-        toml::from_str(&contents).map_err(Into::into)
     }
 }
