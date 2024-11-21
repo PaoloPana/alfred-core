@@ -43,14 +43,7 @@ impl AlfredModule {
     }
 
     pub async fn receive(&self) -> Result<(String, Message), Error> {
-        let mut received = false;
-        let mut topic = String::new();
-        let mut message = Message::empty();
-        while !received {
-            (topic, message) = self.connection.receive().await?;
-            received = !self.connection.manage_module_info_request(topic.as_str(), self.module_name.as_str(), &self.capabilities).await?;
-        }
-        Ok((topic, message))
+        self.connection.receive(&self.module_name, &self.capabilities).await
     }
 
     pub async fn send(&self, topic: &str, message: &Message) -> Result<(), Error> {

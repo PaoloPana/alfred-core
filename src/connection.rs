@@ -58,10 +58,10 @@ impl Connection {
         Ok(true)
     }
 
-    pub async fn receive(&self) -> Result<(String, Message), Error> {
+    pub async fn receive(&self, module_name: &str, capabilities: &HashMap<String, String>) -> Result<(String, Message), Error> {
         loop {
             let (topic, message) = self.receive_all().await?;
-            if self.manage_module_info_request(topic.as_str(), "", &HashMap::new()).await? {
+            if self.manage_module_info_request(topic.as_str(), module_name, capabilities).await? {
                 continue;
             }
             return Ok((topic, message));
