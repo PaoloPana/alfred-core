@@ -3,19 +3,27 @@ use std::path::Path;
 use log::{error, info};
 use alfred_rs::config::Config;
 use std::process::Command;
+use std::thread::sleep;
+use std::time::Duration;
+
+fn is_keep_alive(args: &[String], config: &Config) -> bool {
+    args.iter().any(|a| a == "--keep-alive" || a == "-k")
+        || config.get_module_value("keep_alive").map_or_else(|| false, |v| v == "true")
+}
 
 #[cfg(feature = "runner")]
 #[allow(clippy::use_debug)]
 fn main() {
+    env_logger::init();
     let args: Vec<String> = env::args().collect();
     let config = Config::read(Some("runner"));
+    let keep_alive = is_keep_alive(&args, &config);
     let modules = if args.len() == 1 {
         info!("Args is empty, loading from config.toml...");
-        let alfred_config = Config::read(None).alfred;
-        alfred_config.modules
+        &config.alfred.modules
     } else {
         info!("args is not empty: {args:?}");
-        args
+        &args.into_iter().filter(|arg| !arg.starts_with("--")).collect::<Vec<_>>()
     };
     info!("{modules:?}");
     let rust_log_env = config.get_module_value("log")
@@ -25,7 +33,6 @@ fn main() {
         );
 
     for module in modules {
-        // check if file exists
         if Path::new(&format!("./{module}")).exists() {
             info!("running module '{}'...", module);
             Command::new("sh")
@@ -36,6 +43,11 @@ fn main() {
                 .expect("failed to execute process");
         } else {
             error!("module {module} not found");
+        }
+    }
+    if keep_alive {
+        loop {
+            sleep(Duration::from_secs(10));
         }
     }
 }
