@@ -11,7 +11,6 @@ fn is_keep_alive(args: &[String], config: &Config) -> bool {
         || config.get_module_value("keep_alive").map_or_else(|| false, |v| v == "true")
 }
 
-#[cfg(feature = "runner")]
 #[allow(clippy::use_debug)]
 fn main() {
     env_logger::init();

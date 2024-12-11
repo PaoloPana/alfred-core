@@ -27,11 +27,9 @@ cron = { version = "0.13.0", optional = true }
 chrono = { version = "0.4.38", optional = true}
 
 [features]
-daemon = ["dep:zmq2", "dep:env_logger"]
-routing = ["dep:env_logger"]
-runner = ["dep:env_logger"]
-cron = ["dep:env_logger", "dep:cron", "dep:chrono"]
-logs = ["dep:env_logger"]
+zmq2 = ["dep:zmq2"]
+logger = ["dep:env_logger"]
+cron = ["dep:cron", "dep:chrono"]
 
 [lib]
 name = "alfred_rs"
@@ -42,24 +40,24 @@ required-features = ["default"]
 [[bin]]
 name = "daemon"
 path = "src/bin/daemon.rs"
-required-features = ["daemon"]
+required-features = ["zmq2", "logger"]
 
 [[bin]]
 name = "routing"
 path = "src/bin/routing.rs"
-required-features = ["routing"]
+required-features = ["logger"]
 
 [[bin]]
 name = "runner"
 path = "src/bin/runner.rs"
-required-features = ["runner"]
+required-features = ["logger"]
 
 [[bin]]
 name = "cron"
 path = "src/bin/cron.rs"
-required-features = ["cron"]
+required-features = ["logger", "cron"]
 
 [[bin]]
 name = "logs"
 path = "src/bin/logs.rs"
-required-features = ["logs"]
+required-features = ["logger"]

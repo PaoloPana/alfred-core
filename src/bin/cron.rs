@@ -47,7 +47,6 @@ impl ScheduledJob {
 }
 
 #[tokio::main]
-#[cfg(feature = "cron")]
 async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     let module = AlfredModule::new_with_details("cron", None, None).await?;
