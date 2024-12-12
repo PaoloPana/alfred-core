@@ -12,9 +12,9 @@ categories = ["development-tools", "command-line-utilities", "network-programmin
 
 [dependencies]
 thiserror = "2.0"
-tokio = { version = "1.41", features = ["time", "rt", "rt-multi-thread", "macros"] }
+tokio = { version = "1.42", features = ["time", "rt", "rt-multi-thread", "macros"] }
 zeromq = "0.4"
-bytes = "1.8"
+bytes = "1.9"
 toml = "0.8"
 serde = "1.0"
 serde_derive = "1.0"
@@ -23,8 +23,8 @@ itertools = "0.13"
 log = "0.4"
 zmq2 = { version = "0.5", optional = true }
 env_logger = { version = "0.11", optional = true }
-cron = { version = "0.13.0", optional = true }
-chrono = { version = "0.4.38", optional = true}
+cron = { version = "0.13", optional = true }
+chrono = { version = "0.4", optional = true }
 
 [features]
 zmq2 = ["dep:zmq2"]
