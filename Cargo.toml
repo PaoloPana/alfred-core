@@ -62,3 +62,8 @@ required-features = ["logger", "cron"]
 name = "logs"
 path = "src/bin/logs.rs"
 required-features = ["logger"]
+
+[[bin]]
+name = "downloader"
+path = "src/bin/downloader.rs"
+required-features = ["logger"]
