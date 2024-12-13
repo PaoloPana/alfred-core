@@ -18,6 +18,10 @@ impl AlfredModule {
     pub fn manage_args(app_name: &'static str, version: &'static str) {
         Command::new(app_name).version(version).get_matches();
     }
+    
+    pub fn get_lib_version() -> &'static str {
+        env!("CARGO_PKG_VERSION")
+    }
 
     pub async fn new(module_name: &'static str, version: &'static str) -> Result<Self, Error> {
         Self::new_with_details(module_name, version, None, None).await
