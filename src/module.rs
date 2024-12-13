@@ -5,12 +5,68 @@ use crate::error::Error;
 use crate::message::{Message, MessageType};
 use crate::connection::{Connection, MODULE_INFO_TOPIC_REQUEST, MODULE_INFO_TOPIC_RESPONSE, TOPIC_PREFIX};
 
+pub struct ModuleDetails {
+    module_name: &'static str,
+    version: &'static str,
+    config: Option<Config>,
+    capabilities: HashMap<String, String>
+}
+impl ModuleDetails {
+    pub fn builder() -> ModuleDetailsBuilder {
+        ModuleDetailsBuilder::default()
+    }
+}
+
+#[derive(Default)]
+#[must_use]
+pub struct ModuleDetailsBuilder {
+    module_name: &'static str,
+    version: &'static str,
+    config: Option<Config>,
+    capabilities: HashMap<String, String>
+}
+
+impl ModuleDetailsBuilder {
+    pub fn new() -> Self {
+        Self {
+            module_name: "",
+            version: "",
+            config: None,
+            capabilities: HashMap::new()
+        }
+    }
+    pub const fn module_name(mut self, module_name: &'static str) -> Self {
+        self.module_name = module_name;
+        self
+    }
+    pub const fn version(mut self, version: &'static str) -> Self {
+        self.version = version;
+        self
+    }
+    pub fn config(mut self, config: Option<Config>) -> Self {
+        self.config = config;
+        self
+    }
+    pub fn capabilities(mut self, capabilities: HashMap<String, String>) -> Self {
+        self.capabilities = capabilities;
+        self
+    }
+    pub fn build(self) -> ModuleDetails {
+        ModuleDetails {
+            module_name: self.module_name,
+            version: self.module_name,
+            config: self.config,
+            capabilities: self.capabilities
+        }
+    }
+}
+
 pub struct AlfredModule {
     pub module_name: String,
     pub version: String,
     pub config: Config,
     pub connection: Connection,
-    pub capabilities: HashMap<String, String>
+    pub capabilities: HashMap<String, String> // TODO: change to HashMap<&'static str, &'static str>
 }
 
 impl AlfredModule {
@@ -19,23 +75,33 @@ impl AlfredModule {
         Command::new(app_name).version(version).get_matches();
     }
     
-    pub fn get_lib_version() -> &'static str {
+    pub const fn get_lib_version() -> &'static str {
         env!("CARGO_PKG_VERSION")
     }
 
     pub async fn new(module_name: &'static str, version: &'static str) -> Result<Self, Error> {
-        Self::new_with_details(module_name, version, None, None).await
+        let module_config = ModuleDetails {
+            module_name,
+            version,
+            config: None,
+            capabilities: HashMap::new()
+        };
+        Self::new_with_details(module_config).await
     }
 
-    pub async fn new_with_details(module_name: &'static str, version: &'static str, config: Option<Config>, capabilities: Option<HashMap<String, String>>) -> Result<Self, Error> {
-        Self::manage_args(module_name, version);
-        let version = version.to_string();
-        let config = config.unwrap_or_else(|| Config::read(Some(module_name)));
-        let capabilities = capabilities.unwrap_or_default();
+    pub async fn new_with_details(module_details: ModuleDetails) -> Result<Self, Error> {
+        Self::manage_args(module_details.module_name, module_details.version);
+        let config = module_details.config.unwrap_or_else(|| Config::read(Some(module_details.module_name)));
+        let capabilities = module_details.capabilities;
         let mut connection = Connection::new(&config).await?;
         connection.listen(MODULE_INFO_TOPIC_REQUEST).await?;
-        let module_name = module_name.to_string();
-        let alfred_module = Self { module_name, version, config, connection, capabilities };
+        let alfred_module = Self {
+            module_name: module_details.module_name.to_string(),
+            version: module_details.version.to_string(),
+            config,
+            connection,
+            capabilities
+        };
         alfred_module.send(MODULE_INFO_TOPIC_RESPONSE, &alfred_module.get_info_message()).await?;
         Ok(alfred_module)
     }

@@ -12,5 +12,6 @@ pub mod connection;
 mod zmq_connection;
 
 pub use module::AlfredModule;
+pub use module::ModuleDetailsBuilder;
 
 pub mod config_message;
