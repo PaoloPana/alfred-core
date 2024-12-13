@@ -4,7 +4,7 @@ use zeromq::{Socket, SocketRecv, SocketSend, ZmqMessage};
 use crate::error::Error;
 use crate::message::Message;
 
-pub(crate) struct AlfredSubscriber {
+pub struct AlfredSubscriber {
     subscriber: zeromq::SubSocket,
 }
 
@@ -37,7 +37,7 @@ impl AlfredSubscriber {
     }
 }
 
-pub(crate) struct AlfredPublisher {
+pub struct AlfredPublisher {
     publisher: zeromq::PubSocket
 }
 
