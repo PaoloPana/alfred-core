@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         warn!("Routing config is empty. Exiting.");
         return Ok(());
     }
-    let mut module = AlfredModule::new("routing").await?;
+    let mut module = AlfredModule::new("routing", env!("CARGO_PKG_VERSION")).await?;
 
     let mut routing_hashmap = HashMap::new();
     for routing in routing_config.routing {

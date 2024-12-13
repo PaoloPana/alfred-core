@@ -1,6 +1,7 @@
 // re-export useful libraries
 pub use tokio;
 pub use log;
+pub use clap;
 
 pub mod message;
 pub mod config;

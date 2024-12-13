@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use clap::Command;
 use crate::config::Config;
 use crate::error::Error;
 use crate::message::{Message, MessageType};
@@ -6,6 +7,7 @@ use crate::connection::{Connection, MODULE_INFO_TOPIC_REQUEST, MODULE_INFO_TOPIC
 
 pub struct AlfredModule {
     pub module_name: String,
+    pub version: String,
     pub config: Config,
     pub connection: Connection,
     pub capabilities: HashMap<String, String>
@@ -13,17 +15,23 @@ pub struct AlfredModule {
 
 impl AlfredModule {
 
-    pub async fn new(module_name: &str) -> Result<Self, Error> {
-        Self::new_with_details(module_name, None, None).await
+    pub fn manage_args(app_name: &'static str, version: &'static str) {
+        Command::new(app_name).version(version).get_matches();
     }
 
-    pub async fn new_with_details(module_name: &str, config: Option<Config>, capabilities: Option<HashMap<String, String>>) -> Result<Self, Error> {
+    pub async fn new(module_name: &'static str, version: &'static str) -> Result<Self, Error> {
+        Self::new_with_details(module_name, version, None, None).await
+    }
+
+    pub async fn new_with_details(module_name: &'static str, version: &'static str, config: Option<Config>, capabilities: Option<HashMap<String, String>>) -> Result<Self, Error> {
+        Self::manage_args(module_name, version);
+        let version = version.to_string();
         let config = config.unwrap_or_else(|| Config::read(Some(module_name)));
         let capabilities = capabilities.unwrap_or_default();
         let mut connection = Connection::new(&config).await?;
         connection.listen(MODULE_INFO_TOPIC_REQUEST).await?;
         let module_name = module_name.to_string();
-        let alfred_module = Self { module_name, config, connection, capabilities };
+        let alfred_module = Self { module_name, version, config, connection, capabilities };
         alfred_module.send(MODULE_INFO_TOPIC_RESPONSE, &alfred_module.get_info_message()).await?;
         Ok(alfred_module)
     }

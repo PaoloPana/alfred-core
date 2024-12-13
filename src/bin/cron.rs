@@ -49,7 +49,7 @@ impl ScheduledJob {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
-    let module = AlfredModule::new_with_details("cron", None, None).await?;
+    let module = AlfredModule::new_with_details("cron", env!("CARGO_PKG_VERSION"), None, None).await?;
     let jobs = CronList::read().cron;
 
     if jobs.is_empty() {

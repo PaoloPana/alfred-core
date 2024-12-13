@@ -1,8 +1,10 @@
 use log::info;
 use zmq2::Context;
+use alfred_rs::AlfredModule;
 
 fn main() {
     env_logger::init();
+    AlfredModule::manage_args("daemon", env!("CARGO_PKG_VERSION"));
     info!("Loading daemon...");
     let config = alfred_rs::config::Config::read(None);
     let pub_port = config.alfred.pub_port;

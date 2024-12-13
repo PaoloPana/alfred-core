@@ -10,7 +10,7 @@ const WILDCARD_TOPIC: &str = "";
 #[allow(clippy::print_stdout,clippy::use_debug)]
 async fn main() -> Result<(), Error> {
     env_logger::init();
-    let mut module = AlfredModule::new(MODULE_NAME).await?;
+    let mut module = AlfredModule::new(MODULE_NAME, env!("CARGO_PKG_VERSION")).await?;
     module.listen(WILDCARD_TOPIC).await?;
     loop {
         let (topic, message) = module.connection.receive_all().await?;
