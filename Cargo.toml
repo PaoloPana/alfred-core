@@ -26,11 +26,13 @@ zmq2 = { version = "0.5", optional = true }
 env_logger = { version = "0.11", optional = true }
 cron = { version = "0.13", optional = true }
 chrono = { version = "0.4", optional = true }
+reqwest = { version = "0.12", optional = true }
 
 [features]
 zmq2 = ["dep:zmq2"]
 logger = ["dep:env_logger"]
 cron = ["dep:cron", "dep:chrono"]
+reqwest = ["dep:reqwest"]
 
 [lib]
 name = "alfred_rs"
@@ -66,7 +68,7 @@ required-features = ["logger"]
 [[bin]]
 name = "downloader"
 path = "src/bin/downloader.rs"
-required-features = ["logger"]
+required-features = ["logger", "reqwest"]
 
 [lints.clippy]
 all = "deny"
