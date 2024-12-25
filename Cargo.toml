@@ -27,12 +27,15 @@ env_logger = { version = "0.11", optional = true }
 cron = { version = "0.13", optional = true }
 chrono = { version = "0.4", optional = true }
 reqwest = { version = "0.12", optional = true }
+flate2 = { version = "1.0", optional = true }
+tar = { version = "0.4", optional = true }
 
 [features]
 zmq2 = ["dep:zmq2"]
 logger = ["dep:env_logger"]
 cron = ["dep:cron", "dep:chrono"]
 reqwest = ["dep:reqwest"]
+tar_gz = ["dep:flate2", "dep:tar"]
 
 [lib]
 name = "alfred_rs"
@@ -68,7 +71,7 @@ required-features = ["logger"]
 [[bin]]
 name = "downloader"
 path = "src/bin/downloader.rs"
-required-features = ["logger", "reqwest"]
+required-features = ["logger", "reqwest", "tar_gz"]
 
 [lints.clippy]
 all = "deny"
