@@ -1,0 +1,13 @@
+repo = [
+    "https://github.com/PaoloPana/alfred-rs",
+    "https://github.com/PaoloPana/alfred-ai-callback",
+    "https://github.com/PaoloPana/alfred-audio-out",
+    "https://github.com/PaoloPana/alfred-console",
+    "https://github.com/PaoloPana/alfred-homeassistant",
+    "https://github.com/PaoloPana/alfred-idroid01",
+    "https://github.com/PaoloPana/alfred-ledmatrix",
+    "https://github.com/PaoloPana/alfred-mic",
+    "https://github.com/PaoloPana/alfred-openai",
+    "https://github.com/PaoloPana/alfred-telegram",
+    "https://github.com/PaoloPana/alfred-wake-word"
+]

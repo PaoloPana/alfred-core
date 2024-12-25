@@ -17,6 +17,7 @@ const CRON_FILENAME: &str = "cron.toml";
 pub struct CronList {
     pub cron: Vec<CronItem>
 }
+
 #[allow(clippy::missing_panics_doc)]
 impl CronList {
     pub fn read() -> Self {
