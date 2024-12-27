@@ -50,13 +50,18 @@ async fn download_repo(module_name: &str, repo: &str, version: Option<&str>) -> 
     let archive_url = get_archive_url(repo, version, module_name, current_arch.as_str());
     let output_dir = TMP_DIR;
     if exists(output_dir)? {
+        info!("Removing tmp version...");
         remove_dir_all(output_dir)?;
     }
+    info!("Creating new folder...");
     create_dir(output_dir)?;
     let output_archive = format!("{output_dir}/{module_name}.tar.gz");
+    info!("Downloading bin archive from github...");
     download_file(archive_url.as_str(), output_archive.as_str()).await?;
     let alfred_dir = std::env::current_dir().expect("Error trying to retrieve the tmp directory").display().to_string();
+    info!("Decompressing archive...");
     decompress_archive(output_archive.as_str(), alfred_dir.as_str())?;
+    info!("Decompressed!");
     Ok(version.to_string())
 }
 
@@ -64,6 +69,7 @@ fn decompress_archive(archive_path: &str, output_path: &str) -> Result<(), Box<d
     let tar_gz = File::open(archive_path)?;
     let tar = flate2::read::GzDecoder::new(tar_gz);
     let mut archive = tar::Archive::new(tar);
+    info!("Decompressing archive in {output_path}...");
     archive.unpack(output_path)?;
     Ok(())
 }

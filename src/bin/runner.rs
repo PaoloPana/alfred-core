@@ -14,7 +14,7 @@ fn is_keep_alive(args: &[String], config: &Config) -> bool {
 #[allow(clippy::use_debug)]
 fn main() {
     env_logger::init();
-    let args: Vec<String> = env::args().collect();
+    let mut args: Vec<String> = env::args().collect();
     let config = Config::read(Some("runner"));
     let keep_alive = is_keep_alive(&args, &config);
     let modules = if args.len() == 1 {
@@ -22,7 +22,7 @@ fn main() {
         &config.alfred.modules
     } else {
         info!("args is not empty: {args:?}");
-        &args.into_iter().filter(|arg| !arg.starts_with("--")).collect::<Vec<_>>()
+        &args.drain(1..).into_iter().filter(|arg| !arg.starts_with("--")).collect::<Vec<_>>()
     };
     info!("{modules:?}");
     let rust_log_env = config.get_module_value("log")
