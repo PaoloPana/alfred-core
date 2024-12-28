@@ -17,7 +17,7 @@ fn main() {
     let mut args: Vec<String> = env::args().collect();
     let config = Config::read(Some("runner"));
     let keep_alive = is_keep_alive(&args, &config);
-    let modules = if args.len() == 1 {
+    let modules = if args.len() == 1 || args.len() == 2 && keep_alive {
         info!("Args is empty, loading from config.toml...");
         &config.alfred.modules
     } else {

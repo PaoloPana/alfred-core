@@ -7,6 +7,7 @@ use envconfig::Envconfig;
 use toml::{Table, Value};
 
 pub const CONFIG_FILENAME: &str = "config.toml";
+const DEFAULT_TMP_DIR: &'static str = "/tmp";
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
@@ -40,7 +41,7 @@ impl Config {
         let sub_port = from_env.alfred.sub_port.unwrap_or(from_file_config.alfred.sub_port);
         let tmp_dir = from_env.alfred.tmp_dir
             .or(from_file_config.alfred.tmp_dir)
-            .unwrap_or_else(|| std::env::current_dir().expect("Error trying to retrieve the tmp directory").display().to_string());
+            .unwrap_or(DEFAULT_TMP_DIR.to_string());
         AlfredConfig { url, pub_port, sub_port, tmp_dir, modules: from_file_config.alfred.modules }
     }
 
