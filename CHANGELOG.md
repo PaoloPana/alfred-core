@@ -4,7 +4,7 @@
 
 ### Added
 
-- alfred-rs library for managing modules interactions
+- alfred-core library for managing modules interactions
 - daemon bin for creating the environment
 - cron bin for scheduling messages
 - routing bin for redirecting a message from a topic to another
