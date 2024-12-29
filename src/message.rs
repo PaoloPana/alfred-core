@@ -105,24 +105,23 @@ impl Message {
     ///
     /// const MESSAGE_SEPARATOR : char = 0x0 as char;
     ///
-    /// let decompressed = Message::decompress(format!("ciao{MESSAGE_SEPARATOR}telegram{MESSAGE_SEPARATOR}user.request{MESSAGE_SEPARATOR}telegram.response{MESSAGE_SEPARATOR}0123{MESSAGE_SEPARATOR}TEXT{MESSAGE_SEPARATOR}par1{MESSAGE_SEPARATOR}val1{MESSAGE_SEPARATOR}par2{MESSAGE_SEPARATOR}val2{MESSAGE_SEPARATOR}").as_str());
+    /// let decompressed = Message::decompress(format!("text{MESSAGE_SEPARATOR}module{MESSAGE_SEPARATOR}user.request{MESSAGE_SEPARATOR}module.response{MESSAGE_SEPARATOR}0123{MESSAGE_SEPARATOR}TEXT{MESSAGE_SEPARATOR}par1{MESSAGE_SEPARATOR}val1{MESSAGE_SEPARATOR}par2{MESSAGE_SEPARATOR}val2{MESSAGE_SEPARATOR}").as_str());
     /// assert!(decompressed.is_ok());
     /// let mut params = HashMap::new();
     /// params.insert(String::from("par1"), String::from("val1"));
     /// params.insert(String::from("par2"), String::from("val2"));
     /// let message: Message = Message {
-    ///     text: String::from("ciao"),
-    ///     starting_module: String::from("telegram"),
+    ///     text: String::from("text"),
+    ///     starting_module: String::from("module"),
     ///     request_topic: String::from("user.request"),
-    ///     response_topics: LinkedList::from(vec!(String::from("telegram.response"))),
+    ///     response_topics: LinkedList::from([String::from("module.response")]),
     ///     sender: String::from("0123"),
-    ///     message_type: MessageType::TEXT,
+    ///     message_type: MessageType::Text,
     ///     params
     /// };
     /// assert_eq!(message, decompressed.unwrap());
     /// ```
     pub fn decompress(comp_str: &str) -> Result<Self, MessageCompressionError> {
-
         let binding = comp_str.to_string();
         let ser_msg = binding.split(MESSAGE_SEPARATOR).collect::<Vec<&str>>();
 
