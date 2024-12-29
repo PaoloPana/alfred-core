@@ -1,5 +1,5 @@
 [package]
-name = "alfred-rs"
+name = "alfred-core"
 version = "0.1.0"
 edition = "2021"
 authors = ["Paolo Panarese <panarese.paolo@gmail.com>"]
