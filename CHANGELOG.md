@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased] - yyyy-mm-dd
+
 ## [0.1.1] - 2024-12-29
 
 ### Added
