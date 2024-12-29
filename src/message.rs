@@ -105,7 +105,7 @@ impl Message {
     ///
     /// const MESSAGE_SEPARATOR : char = 0x0 as char;
     ///
-    /// let decompressed = Message::decompress(format!("text{MESSAGE_SEPARATOR}module{MESSAGE_SEPARATOR}user.request{MESSAGE_SEPARATOR}module.response{MESSAGE_SEPARATOR}0123{MESSAGE_SEPARATOR}TEXT{MESSAGE_SEPARATOR}par1{MESSAGE_SEPARATOR}val1{MESSAGE_SEPARATOR}par2{MESSAGE_SEPARATOR}val2{MESSAGE_SEPARATOR}").as_str());
+    /// let decompressed = Message::decompress(format!("text{MESSAGE_SEPARATOR}module{MESSAGE_SEPARATOR}user.request{MESSAGE_SEPARATOR}module.response{MESSAGE_SEPARATOR}0123{MESSAGE_SEPARATOR}Text{MESSAGE_SEPARATOR}par1{MESSAGE_SEPARATOR}val1{MESSAGE_SEPARATOR}par2{MESSAGE_SEPARATOR}val2{MESSAGE_SEPARATOR}").as_str());
     /// assert!(decompressed.is_ok());
     /// let mut params = HashMap::new();
     /// params.insert(String::from("par1"), String::from("val1"));

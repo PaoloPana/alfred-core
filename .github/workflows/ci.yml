@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_VERSION_STABLE: 1.83.0
+  RUST_VERSION_NIGHTLY: nightly-2024-11-26
+  CRATE_PATHS: .
+
+jobs:
+
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION_STABLE }}
+          profile: minimal
+          override: true
+      - name: Build
+        run: cargo build --all-targets
+      - name: Test
+        run: cargo test
+
+  lint-rust:
+    runs-on: ubuntu-24.04
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION_STABLE }}
+          profile: minimal
+          components: rustfmt, clippy
+          override: true
+      - name: Run clippy
+        run: cargo clippy --all-targets -- -D warnings
