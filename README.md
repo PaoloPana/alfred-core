@@ -1,4 +1,6 @@
 # Alfred
+**DISCLAIMER: This documentation is a work-in-progress.**
+
 **Alfred** is the simplest way to create your own AI agent with a modular structure!
 
 ## Docs
@@ -14,7 +16,7 @@ The core of the framwork is written in Rust, but each applications (named "modul
 Each module does a specific job: there is a module which receives and sends messages using Telegram, there is a module which interact with OpenAI, another module interacts with HomeAssistant and so on. The modules exchange messages using a PUB/SUB architecture (implemented with [ZeroMQ](https://zeromq.org/)). This system allows to be technology-independent: for example, you can use the SpeechToText by OpenAI or choosing the one from Google, running the proper module without changing anything.
 -->
 
-## Installation (TODO: improve it)
+## Installation
 If you need to install Alfred as typical user (no code changes needed), you have to follow this section.
 Instead, if you need to work on a specific module (or to help us to improve this library), follow [this document](docs/dev_installation.md).
 
@@ -109,6 +111,7 @@ audio-out -- (12) playing audio --> user
 ## ToDo
  - Documentation:
    - Improve examples section
+   - Improve list of official modules
    - Improve core details
    - Improve dev_installation
    - Write new_module tutorial
