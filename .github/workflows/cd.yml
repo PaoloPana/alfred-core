@@ -42,23 +42,6 @@ jobs:
       - name: Test
         run: cargo test
 
-  test-macos:
-    runs-on: macos-10.15
-    needs: check-version
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ env.RUST_VERSION_STABLE }}
-          profile: minimal
-          override: true
-      - name: Build
-        run: cargo build --all-targets
-      - name: Test
-        run: cargo test
-
   check-publication:
     environment: Deployment
     runs-on: ubuntu-24.04
@@ -82,7 +65,6 @@ jobs:
     runs-on: ubuntu-24.04
     needs:
       - test-ubuntu
-      - test-macos
       - check-publication
     steps:
       - name: Checkout
