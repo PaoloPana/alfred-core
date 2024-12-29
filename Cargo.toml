@@ -38,7 +38,7 @@ reqwest = ["dep:reqwest"]
 tar_gz = ["dep:flate2", "dep:tar"]
 
 [lib]
-name = "alfred_rs"
+name = "alfred_core"
 path = "src/lib.rs"
 bench = true
 required-features = ["default"]

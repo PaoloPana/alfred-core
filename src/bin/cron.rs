@@ -7,9 +7,9 @@ use chrono::{DateTime, Local, TimeDelta};
 use cron::Schedule;
 use serde_derive::Deserialize;
 use tokio::time::sleep;
-use alfred_rs::AlfredModule;
-use alfred_rs::config_message::ConfigMessage;
-use alfred_rs::message::Message;
+use alfred_core::AlfredModule;
+use alfred_core::config_message::ConfigMessage;
+use alfred_core::message::Message;
 
 const CRON_FILENAME: &str = "cron.toml";
 

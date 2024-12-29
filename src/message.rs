@@ -101,7 +101,7 @@ impl Message {
     /// ```rust
     /// use std::collections::{HashMap, LinkedList, VecDeque};
     /// use std::io::Lines;
-    /// use alfred_rs::message::{Message, MessageType};
+    /// use alfred_core::message::{Message, MessageType};
     ///
     /// const MESSAGE_SEPARATOR : char = 0x0 as char;
     ///
