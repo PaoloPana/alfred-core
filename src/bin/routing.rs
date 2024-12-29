@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use serde_derive::Deserialize;
-use alfred_rs::log::{debug, info, warn};
-use alfred_rs::AlfredModule;
-use alfred_rs::config_message::ConfigMessage;
+use alfred_core::log::{debug, info, warn};
+use alfred_core::AlfredModule;
+use alfred_core::config_message::ConfigMessage;
 
 const ROUTING_FILENAME: &str = "routing.toml";
 

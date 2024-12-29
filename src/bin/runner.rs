@@ -1,7 +1,7 @@
 use std::env;
 use std::path::Path;
 use log::{error, info};
-use alfred_rs::config::Config;
+use alfred_core::config::Config;
 use std::process::Command;
 use std::thread::sleep;
 use std::time::Duration;

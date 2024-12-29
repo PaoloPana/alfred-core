@@ -1,7 +1,7 @@
 use log::{debug, info};
-use alfred_rs::AlfredModule;
-use alfred_rs::error::Error;
-use alfred_rs::message::MessageType;
+use alfred_core::AlfredModule;
+use alfred_core::error::Error;
+use alfred_core::message::MessageType;
 
 const MODULE_NAME: &str = "logs";
 const WILDCARD_TOPIC: &str = "";
