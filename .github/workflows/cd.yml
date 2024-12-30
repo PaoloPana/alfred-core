@@ -139,8 +139,10 @@ jobs:
         run: sed -n '/\#\# \[${{needs.check-version.outputs.version}}/,/\#\# \[/p' CHANGELOG.md | sed '/\#\# \[/d' | sed '1{/^$/d}' | sed '1{/^$/d}' | sed '${/^$/d}' | sed '${/^$/d}' > version_changelog.md
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          name: v${{needs.check-version.outputs.version}}
+          tag_name: v${{needs.check-version.outputs.version}}
+          body_path: version_changelog.md
           files: |
             alfred-core_x86_64.tar.gz
             alfred-core_aarch64.tar.gz
