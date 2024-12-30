@@ -5,7 +5,7 @@ ARCH=${1}
 echo "Installing cross..."
 cargo install cross --git https://github.com/cross-rs/cross
 echo "Building for arch ${ARCH}..."
-sudo cross build --release --target ${ARCH}-unknown-linux-gnu --bin daemon --bin routing --bin runner --bin cron --bin logs --bin downloader --all-features
+cross build --release --target ${ARCH}-unknown-linux-gnu --bin daemon --bin routing --bin runner --bin cron --bin logs --bin downloader --all-features
 echo "Copying bin files..."
 OUT_FOLDER="alfred-core_${ARCH}"
 BIN_FOLDER="target/${ARCH}-unknown-linux-gnu/release"
