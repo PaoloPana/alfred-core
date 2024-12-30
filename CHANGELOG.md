@@ -4,6 +4,7 @@
 
 ### Modified
 - Updated cron version (to v0.14)
+- Updated CI/CD
 
 ## [0.1.3] - 2024-12-30
 
