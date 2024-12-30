@@ -10,8 +10,8 @@ sudo apt-get install -y tar
 
 echo "Downloading Alfred core from github (${LATEST_VERSION})"
 
-curl --output /tmp/alfred-rs.tar.gz "https://github.com/PaoloPana/alfred-rs/releases/download/${LATEST_VERSION}/alfred-rs_${ARCH}.tar.gz"
+curl --output /tmp/alfred-core.tar.gz "https://github.com/PaoloPana/alfred-rs/releases/download/${LATEST_VERSION}/alfred-core_${ARCH}.tar.gz"
 
-tar -xvzf /tmp/alfred-rs.tar.gz -C /usr/share/alfred
+tar -xvzf /tmp/alfred-core.tar.gz -C /usr/share/alfred
 # TODO: ask to create default config files
 # TODO: ask to add as service
