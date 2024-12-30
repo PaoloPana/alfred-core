@@ -2,7 +2,7 @@
 
 ## [Unreleased] - yyyy-mm-dd
 
-## Modified
+### Modified
 - CI/CD properties
 
 ## [0.1.1] - 2024-12-29
