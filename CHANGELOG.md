@@ -2,6 +2,10 @@
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Modified
+- Updated cron version (to v0.14)
+- Updated CI/CD
+
 ## [0.1.6] - 2024-12-30
 
 ## [0.1.5] - 2024-12-30

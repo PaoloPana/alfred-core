@@ -48,7 +48,7 @@ jobs:
         run: bash .github/workflows/scripts/build_release.sh x86_64
       - uses: actions/upload-artifact@v4
         with:
-          name: alfred-core_x86_64
+          name: alfred-core_x86_64.tar.gz
           path: alfred-core_x86_64.tar.gz
   
   build-aarch64:
@@ -63,7 +63,7 @@ jobs:
         run: bash .github/workflows/scripts/build_release.sh aarch64
       - uses: actions/upload-artifact@v4
         with:
-          name: alfred-core_aarch64
+          name: alfred-core_aarch64.tar.gz
           path: alfred-core_aarch64.tar.gz
   
   check-publication:
@@ -106,12 +106,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: alfred-core_x86_64
-          path: alfred-core_x86_64.tar.gz
-      - uses: actions/download-artifact@v4
-        with:
-          name: alfred-core_aarch64
-          path: alfred-core_aarch64.tar.gz
+          path: .
+          merge-multiple: true
       - name: Install dependencies
         run: sudo apt-get install node-semver -y
       - name: Checkout
