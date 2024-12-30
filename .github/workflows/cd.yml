@@ -104,16 +104,14 @@ jobs:
       - build-x86_64
       - build-aarch64
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           path: .
           merge-multiple: true
       - name: Install dependencies
         run: sudo apt-get install node-semver -y
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GIT_TOKEN }}
       - name: Apply version and date in CHANGELOG.md file
         run: sed -i "s/^\#\# \[Unreleased\] - yyyy-mm-dd$/\#\# [${{needs.check-version.outputs.version}}] - $(date +'%Y-%m-%d')/g" CHANGELOG.md
       - name: Push changes and create tag
