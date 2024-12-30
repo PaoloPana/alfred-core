@@ -81,6 +81,7 @@ jobs:
           CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
 
   create-release:
+    permissions: write-all
     environment: Deployment
     runs-on: ubuntu-24.04
     needs:

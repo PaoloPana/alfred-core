@@ -2,6 +2,9 @@
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Modified
+- CI/CD settings
+
 ## [0.1.2] - 2024-12-30
 
 ### Modified
