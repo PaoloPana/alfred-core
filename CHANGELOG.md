@@ -2,6 +2,9 @@
 
 ## [Unreleased] - yyyy-mm-dd
 
+## Modified
+- CI/CD properties
+
 ## [0.1.1] - 2024-12-29
 
 ### Added
