@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - yyyy-mm-dd
+## [0.1.5] - 2024-12-30
 
 ### Modified
 - Updated cron version (to v0.14)
