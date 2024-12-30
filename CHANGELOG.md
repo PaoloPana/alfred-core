@@ -2,6 +2,9 @@
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Modified
+- Updated cron version (to v0.14)
+
 ## [0.1.3] - 2024-12-30
 
 ### Modified
@@ -12,7 +15,7 @@
 ### Modified
 - CI/CD properties
 
-## [0.1.1] - 2024-12-29
+## [0.1.1] - 2024-12-30
 
 ### Added
 
