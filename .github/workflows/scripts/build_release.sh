@@ -1,4 +1,6 @@
 #!/bin/bash
+set -xeu
+
 ARCH=${1}
 echo "Installing cross..."
 cargo install cross --git https://github.com/cross-rs/cross
