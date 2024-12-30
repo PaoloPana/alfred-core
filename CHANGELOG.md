@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - yyyy-mm-dd
+## [0.1.8] - 2024-12-30
 
 ### Modified
 - Updated CI/CD
