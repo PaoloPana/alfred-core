@@ -21,7 +21,7 @@ pub struct CronList {
 #[allow(clippy::missing_panics_doc)]
 impl CronList {
     pub fn read() -> Result<Self, Box<dyn Error>> {
-        let contents = fs::read_to_string(CRON_FILENAME).expect("Could not read file");
+        let contents = fs::read_to_string(CRON_FILENAME)?;
         toml::from_str(&contents).map_err(Into::into)
     }
 }
