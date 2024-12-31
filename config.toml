@@ -8,6 +8,6 @@ modules = [
     "cron"
 ]
 [runner]
-log = "debug"
+log = "info"
 output = "terminal"
 keep_alive = "false"

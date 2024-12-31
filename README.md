@@ -22,6 +22,7 @@ Instead, if you need to work on a specific module (or to help us to improve this
 
 ### Prerequisites:
  - curl
+ - tar
 
 **IMPORTANT: if you already have a running installation, back-up the configuration files before running the following commands!**
 
@@ -115,7 +116,7 @@ audio-out -- (12) playing audio --> user
    - Improve core details
    - Improve dev_installation
    - Write new_module tutorial
- - Scripts:
-   - [install-alfred.sh] add support for non-APT package managements
-   - [install-alfred.sh] ask to create default config files
-   - [install-alfred.sh] ask to add as service
+ - Cron:
+   - Manage empty file
+ - Routing:
+   - Manage empty file
