@@ -116,7 +116,3 @@ audio-out -- (12) playing audio --> user
    - Improve core details
    - Improve dev_installation
    - Write new_module tutorial
- - Cron:
-   - Manage empty file
- - Routing:
-   - Manage empty file
