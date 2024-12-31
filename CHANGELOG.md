@@ -2,9 +2,11 @@
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Added
+- Add service and default config in [installation script](scripts/install-alfred.sh)
+
 ### Modified
 - Updated CI/CD
-- Add service and default config in [installation script](scripts/install-alfred.sh)
 
 ## [0.1.8] - 2024-12-30
 
