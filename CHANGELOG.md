@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - yyyy-mm-dd
+## [0.1.9] - 2025-01-03
 
 ### Added
 - Add service and default config in [installation script](scripts/install-alfred.sh)

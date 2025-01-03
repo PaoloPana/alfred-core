@@ -1,5 +1,5 @@
 #!/bin/sh
-LATEST_VERSION=v0.1.8
+LATEST_VERSION=v0.1.9
 INSTALLATION_DIR="${HOME}/.local/share"
 ALFRED_DIR="${INSTALLATION_DIR}/alfred"
 ARCH=$(arch)
