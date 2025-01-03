@@ -5,6 +5,7 @@
 ### Added
 - Add service and default config in [installation script](scripts/install-alfred.sh)
 - Removed default sudo privileges from installation script command in README.md
+- Managed empty cron configuration file
 
 ### Modified
 - Updated CI/CD
