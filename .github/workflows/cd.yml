@@ -110,6 +110,8 @@ jobs:
         run: sudo apt-get install node-semver -y
       - name: Apply version and date in CHANGELOG.md file
         run: sed -i "s/^\#\# \[Unreleased\] - yyyy-mm-dd$/\#\# [${{needs.check-version.outputs.version}}] - $(date +'%Y-%m-%d')/g" CHANGELOG.md
+      - name: Apply version in scripts/install-alfred.sh
+        run: sed -i "s/LATEST_VERSION=v.*/LATEST_VERSION=v${{needs.check-version.outputs.version}}/" scripts/install-alfred.sh
       - name: Push changes and create tag
         uses: EndBug/add-and-commit@v9
         with:

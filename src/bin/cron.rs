@@ -20,9 +20,9 @@ pub struct CronList {
 
 #[allow(clippy::missing_panics_doc)]
 impl CronList {
-    pub fn read() -> Self {
-        let contents = fs::read_to_string(CRON_FILENAME).expect("Could not read file");
-        toml::from_str(&contents).expect("Unable to load data")
+    pub fn read() -> Result<Self, Box<dyn Error>> {
+        let contents = fs::read_to_string(CRON_FILENAME)?;
+        toml::from_str(&contents).map_err(Into::into)
     }
 }
 
@@ -51,7 +51,12 @@ impl ScheduledJob {
 async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     let module = AlfredModule::new("cron", env!("CARGO_PKG_VERSION")).await?;
-    let jobs = CronList::read().cron;
+    let cron_list = CronList::read().ok().map(|list| list.cron);
+    if cron_list.is_none() {
+        warn!("No cron found. Exiting.");
+        return Ok(());
+    }
+    let jobs = cron_list.expect("Unable to load data");
 
     if jobs.is_empty() {
         warn!("No jobs scheduled. Exiting...");

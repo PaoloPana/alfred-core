@@ -1,7 +1,0 @@
-[[cron]]
-periodicity = "* * * * * * *"
-topic = "ledmatrix"
-[cron.message]
-text = "clock"
-message_type = "Text"
-

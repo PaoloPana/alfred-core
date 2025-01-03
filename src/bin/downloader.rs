@@ -17,9 +17,9 @@ pub struct RepoList {
 }
 
 impl RepoList {
-    pub fn read() -> Self {
-        let contents = fs::read_to_string(REPO_FILENAME).expect("Could not read file");
-        toml::from_str(&contents).expect("Unable to load data")
+    pub fn read() -> Result<Self, Box<dyn Error>> {
+        let contents = fs::read_to_string(REPO_FILENAME)?;
+        toml::from_str(&contents).map_err(Into::into)
     }
 }
 
@@ -86,7 +86,7 @@ async fn get_latest_version(repo: &str) -> Result<String, Box<dyn Error>> {
     if response.status().is_redirection() {
         if let Some(location) = response.headers().get("Location") {
             let location_str = location.to_str().unwrap_or_default();
-            return Ok(location_str.split("/").last()
+            return Ok(location_str.split('/').last()
                 .unwrap_or("latest").to_string()
             );
         }
@@ -95,9 +95,9 @@ async fn get_latest_version(repo: &str) -> Result<String, Box<dyn Error>> {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn Error>>{
     env_logger::init();
-    let repo_list = RepoList::read().repo;
+    let repo_list = RepoList::read()?.repo;
     let args = std::env::args().collect::<Vec<String>>();
     if args.len() < 2 {
         error!("Not enough arguments. Structure: {} [module name]", args[0]);
@@ -111,7 +111,7 @@ async fn main() {
         Some(repo) => {
             match download_repo(module_name.as_str(), repo.as_str(), version).await {
                 Ok(version) => {
-                    info!("Download succeeded from repo {repo} (version {version})")
+                    info!("Download succeeded from repo {repo} (version {version})");
                 },
                 Err(e) => {
                     error!("Error downloading repository {repo}: {e}");
@@ -119,4 +119,5 @@ async fn main() {
             }
         }
     };
+    Ok(())
 }
