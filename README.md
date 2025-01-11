@@ -27,7 +27,7 @@ Instead, if you need to work on a specific module (or to help us to improve this
 **IMPORTANT: if you already have a running installation, back-up the configuration files before running the following commands!**
 
 ```shell
-curl -L https://github.com/PaoloPana/alfred-rs/raw/refs/heads/main/scripts/install-alfred.sh | sh
+curl -L https://github.com/PaoloPana/alfred-core/raw/refs/heads/main/scripts/install-alfred.sh | sh
 ```
 
 ## Official modules
