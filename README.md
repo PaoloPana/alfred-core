@@ -1,7 +1,14 @@
-# Alfred
-**DISCLAIMER: This documentation is a work-in-progress.**
+<div align = "center">
+  <!-- <img src = "icon.svg" /> -->
+  <h1>Alfred</h1>
+  <img src = "https://github.com/PaoloPana/alfred-core/actions/workflows/ci.yml/badge.svg" />
+  <img src = "https://github.com/PaoloPana/alfred-core/actions/workflows/cd.yml/badge.svg" />
+  <img src = "https://img.shields.io/crates/v/alfred-core.svg" />
+  <p>The simplest and lighter way to create your own AI agent with a modular structure!</p>
+</div>
+<br />
 
-**Alfred** is the simplest way to create your own AI agent with a modular structure!
+**DISCLAIMER: This documentation is a work-in-progress.**
 
 ## Docs
  - More tech-ish info [HERE](docs/details.md).

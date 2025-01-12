@@ -45,7 +45,7 @@ async fn download_repo(module_name: &str, repo: &str, version: Option<&str>) -> 
     // download from repo
     let latest_version = get_latest_version(repo).await?;
     let version = version.unwrap_or(latest_version.as_str());
-    info!("Version; {version}");
+    info!("Version: {version}");
     let current_arch = std::env::consts::ARCH.to_string();
     let archive_url = get_archive_url(repo, version, module_name, current_arch.as_str());
     let output_dir = TMP_DIR;
