@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time::Duration;
 use crate::config::Config;
@@ -41,7 +41,7 @@ impl Connection {
         self.subscriber.lock().await.receive().await
     }
 
-    async fn send_module_info(&self, module_name: &str, capabilities: &HashMap<String, String>) -> Result<(), Error> {
+    async fn send_module_info(&self, module_name: &str, capabilities: &BTreeMap<String, String>) -> Result<(), Error> {
         let info_msg = Message {
             text: module_name.to_string(),
             message_type: MessageType::Text,
@@ -51,14 +51,14 @@ impl Connection {
         self.send(MODULE_INFO_TOPIC_RESPONSE, &info_msg).await
     }
 
-    pub async fn manage_module_info_request(&self, topic: &str, module_name: &str, capabilities: &HashMap<String, String>) -> Result<bool, Error> {
+    pub async fn manage_module_info_request(&self, topic: &str, module_name: &str, capabilities: &BTreeMap<String, String>) -> Result<bool, Error> {
         if topic != MODULE_INFO_TOPIC_REQUEST { return Ok(false); }
         debug!("Received info request. Replying...");
         self.send_module_info(module_name, capabilities).await?;
         Ok(true)
     }
 
-    pub async fn receive(&self, module_name: &str, capabilities: &HashMap<String, String>) -> Result<(String, Message), Error> {
+    pub async fn receive(&self, module_name: &str, capabilities: &BTreeMap<String, String>) -> Result<(String, Message), Error> {
         loop {
             let (topic, message) = self.receive_all().await?;
             if self.manage_module_info_request(topic.as_str(), module_name, capabilities).await? {
