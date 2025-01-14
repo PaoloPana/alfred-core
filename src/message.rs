@@ -1,11 +1,10 @@
-use std::{fmt, str::FromStr, collections::{HashMap, hash_map::RandomState}};
-use std::collections::LinkedList;
+use std::{fmt, str::FromStr};
+use std::collections::{BTreeMap, LinkedList};
 use itertools::Itertools;
 use serde_derive::Deserialize;
 use crate::error::MessageCompressionError;
 
 const MESSAGE_SEPARATOR : char = 0x0 as char;
-const VEC_SEPARATOR : char = 0xFF as char;
 
 #[derive(Debug, PartialEq, Eq, Clone, Deserialize, Default)]
 pub enum MessageType {
@@ -15,6 +14,30 @@ pub enum MessageType {
     Audio,
     Photo,
     ModuleInfo
+}
+
+impl MessageType {
+    pub const fn compress(&self) -> char {
+        match self {
+            Self::Unknown => 0x00 as char,
+            Self::Text => 0x01 as char,
+            Self::Audio => 0x2 as char,
+            Self::Photo => 0x03 as char,
+            Self::ModuleInfo => 0xFF as char,
+        }
+    }
+
+    pub fn decompress(val: char) -> Result<Self, String> {
+        let u8_val = val as u8;
+        Ok(match u8_val {
+            0x00 => Self::Unknown,
+            0x01 => Self::Text,
+            0x02 => Self::Audio,
+            0x03 => Self::Photo,
+            0xFF => Self::ModuleInfo,
+            _ => Err(format!("{val} is not a valid MessageType."))?
+        })
+    }
 }
 
 impl FromStr for MessageType {
@@ -46,122 +69,170 @@ impl fmt::Display for MessageType {
 
 #[derive(Debug, PartialEq, Eq, Default)]
 pub struct Message {
-    pub text: String,
-    pub starting_module: String,
-    pub request_topic: String,
+    pub message_type: MessageType,
+    pub params: BTreeMap<String, String>,
     pub response_topics: LinkedList<String>,
     pub sender: String,
-    pub message_type: MessageType,
-    pub params: HashMap<String, String, RandomState>,
+    pub text: String,
 }
 
 impl Clone for Message {
     fn clone(&self) -> Self {
         Self {
+            message_type: self.message_type.clone(),
             text: self.text.clone(),
-            starting_module: self.starting_module.clone(),
-            request_topic: self.request_topic.clone(),
             response_topics: self.response_topics.clone(),
             sender: self.sender.clone(),
-            message_type: self.message_type.clone(),
             params: self.params.clone(),
         }
     }
 }
 
+/// Message implementation
+/// # Examples
+/// ```rust
+/// use std::collections::{BTreeMap, LinkedList};
+/// use alfred_core::message::{Message, MessageType};
+///
+/// let params = BTreeMap::from([
+///     (String::from("par1"), String::from("val1")),
+///     (String::from("par2"), String::from("val2"))
+/// ]);
+/// let message = Message {
+///     text: String::from("text"),
+///     response_topics: LinkedList::from([String::from("module.response"), String::from("other.module")]),
+///     sender: String::from("0123"),
+///     message_type: MessageType::Text,
+///     params
+/// };
+/// let compress = message.compress();
+/// let result = Message::decompress(compress.as_str()).unwrap();
+/// assert_eq!(message, result);
+/// ```
 impl Message {
 
     pub fn empty() -> Self {
         Self::default()
     }
 
-    pub fn compress(&self) -> String {
-        let params = self.params.iter()
-            .map(|(k, v)| format!("{k}{MESSAGE_SEPARATOR}{v}"));
-
-        [
-            self.text.clone(),
-            self.starting_module.clone(),
-            self.request_topic.clone(),
-            Itertools::intersperse(
-                self.response_topics.iter()
-                    .cloned(), VEC_SEPARATOR.to_string()
-            ).collect(),
-            self.sender.clone(),
-            self.message_type.to_string()
-        ]
-            .into_iter()
-            .chain(params)
-            .collect::<Vec<String>>()
-            .join(MESSAGE_SEPARATOR.to_string().as_str())
-    }
-
-    /// decompress
+    /// compress
     /// # Examples
     /// ```rust
-    /// use std::collections::{HashMap, LinkedList, VecDeque};
+    /// use std::collections::{BTreeMap, LinkedList, VecDeque};
     /// use std::io::Lines;
     /// use alfred_core::message::{Message, MessageType};
     ///
     /// const MESSAGE_SEPARATOR : char = 0x0 as char;
     ///
-    /// let decompressed = Message::decompress(format!("text{MESSAGE_SEPARATOR}module{MESSAGE_SEPARATOR}user.request{MESSAGE_SEPARATOR}module.response{MESSAGE_SEPARATOR}0123{MESSAGE_SEPARATOR}Text{MESSAGE_SEPARATOR}par1{MESSAGE_SEPARATOR}val1{MESSAGE_SEPARATOR}par2{MESSAGE_SEPARATOR}val2{MESSAGE_SEPARATOR}").as_str());
-    /// assert!(decompressed.is_ok());
-    /// let mut params = HashMap::new();
-    /// params.insert(String::from("par1"), String::from("val1"));
-    /// params.insert(String::from("par2"), String::from("val2"));
     /// let message: Message = Message {
-    ///     text: String::from("text"),
-    ///     starting_module: String::from("module"),
-    ///     request_topic: String::from("user.request"),
-    ///     response_topics: LinkedList::from([String::from("module.response")]),
-    ///     sender: String::from("0123"),
     ///     message_type: MessageType::Text,
-    ///     params
+    ///     text: String::from("data"),
+    ///     response_topics: LinkedList::from([String::from("module.response"), String::from("other.module")]),
+    ///     sender: String::from("0123"),
+    ///     params: BTreeMap::from([
+    ///         (String::from("par1"), String::from("val1")),
+    ///         (String::from("par2"), String::from("val2"))
+    ///     ])
+    /// };
+    /// let compressed = message.compress();
+    /// let expected_message_type = 0x1 as char;
+    /// let expected_num_params = 0x2 as char;
+    /// let expected_num_responses = 0x2 as char;
+    /// let expected = format!("{expected_message_type}{expected_num_params}{expected_num_responses}par1{MESSAGE_SEPARATOR}val1{MESSAGE_SEPARATOR}par2{MESSAGE_SEPARATOR}val2{MESSAGE_SEPARATOR}module.response{MESSAGE_SEPARATOR}other.module{MESSAGE_SEPARATOR}0123{MESSAGE_SEPARATOR}data");
+    /// assert_eq!(compressed, expected);
+    /// ```
+    pub fn compress(&self) -> String {
+
+        #[allow(clippy::cast_possible_truncation)]
+        let compress_number = |val: usize| {
+            char::from(val as u8).to_string()
+        };
+
+        let params = self.params.iter()
+            .map(|(k, v)| format!("{k}{MESSAGE_SEPARATOR}{v}{MESSAGE_SEPARATOR}"))
+            .join("");
+
+        [
+            self.message_type.compress().to_string(),
+            compress_number(self.params.len()),
+            compress_number(self.response_topics.len()),
+            params,
+            Itertools::intersperse(
+                self.response_topics.iter()
+                    .cloned(), MESSAGE_SEPARATOR.to_string()
+            ).collect(),
+            MESSAGE_SEPARATOR.to_string(),
+            self.sender.clone(),
+            MESSAGE_SEPARATOR.to_string(),
+            self.text.clone(),
+        ]
+            .into_iter()
+            .collect::<String>()
+    }
+
+    /// decompress
+    /// # Examples
+    /// ```rust
+    /// use std::collections::{BTreeMap, LinkedList, VecDeque};
+    /// use std::io::Lines;
+    /// use alfred_core::message::{Message, MessageType};
+    ///
+    /// const MESSAGE_SEPARATOR : char = 0x0 as char;
+    ///
+    /// let compressed_message_type = 0x01 as char;
+    /// let compressed_num_params = 0x02 as char;
+    /// let compressed_num_responses = 0x02 as char;
+    /// let decompressed = Message::decompress(format!("{compressed_message_type}{compressed_num_params}{compressed_num_responses}par1{MESSAGE_SEPARATOR}val1{MESSAGE_SEPARATOR}par2{MESSAGE_SEPARATOR}val2{MESSAGE_SEPARATOR}module.response{MESSAGE_SEPARATOR}other.module{MESSAGE_SEPARATOR}0123{MESSAGE_SEPARATOR}data").as_str());
+    /// assert!(decompressed.is_ok());
+    /// let message: Message = Message {
+    ///     message_type: MessageType::Text,
+    ///     text: String::from("data"),
+    ///     response_topics: LinkedList::from([String::from("module.response"), String::from("other.module")]),
+    ///     sender: String::from("0123"),
+    ///     params: BTreeMap::from([
+    ///         (String::from("par1"), String::from("val1")),
+    ///         (String::from("par2"), String::from("val2"))
+    ///     ])
     /// };
     /// assert_eq!(message, decompressed.unwrap());
     /// ```
     pub fn decompress(comp_str: &str) -> Result<Self, MessageCompressionError> {
-        let binding = comp_str.to_string();
-        let ser_msg = binding.split(MESSAGE_SEPARATOR).collect::<Vec<&str>>();
-
-        let get_field = |index :usize, default: String| {
-            ser_msg
-                .get(index).copied()
-                .map_or(default, ToString::to_string)
+        let mut binding = comp_str.chars();
+        let mut get_next_char = || {
+            binding.nth(0).ok_or(MessageCompressionError::DecompressionError())
         };
 
-        let get_vec = |index :usize, field_name: &str| {
-            Ok(ser_msg
-                .get(index)
-                .ok_or_else(|| MessageCompressionError::FieldNotFound(field_name.to_string()))?
-                .split(VEC_SEPARATOR)
-                .map(ToString::to_string)
-                .collect::<LinkedList<String>>())
-        };
+        let message_type_str = get_next_char()?;
+        let message_type = MessageType::decompress(message_type_str)
+            .map_err(|_| MessageCompressionError::DecompressionError())?;
 
-        let get_params = |start: usize| {
-            let mut param_name = String::new();
-            let mut params: HashMap<String, String> = HashMap::new();
-            for (i, param) in ser_msg.iter().enumerate().skip(start) {
-                if i % 2 == 0 {
-                    param_name = (*param).to_string();
-                } else {
-                    params.insert(param_name.clone(), (*param).to_string());
-                }
-            }
-            params
-        };
+        let mut offset = 0;
+        let params_size = (get_next_char()? as u8) as usize;
+        let response_topics_size = (get_next_char()? as u8) as usize;
 
-        Ok(Self{
-            text: get_field(0, String::new()),
-            starting_module: get_field(1, String::new()),
-            request_topic: get_field(2, String::new()),
-            response_topics: get_vec(3,"response_topics")?,
-            sender: get_field(4, String::new()),
-            message_type: get_field(5, MessageType::default().to_string()).parse::<MessageType>()
-                .or(Err(MessageCompressionError::DecompressionError()))?,
-            params: get_params(6)
+        let ser_msg = comp_str[3..].split(MESSAGE_SEPARATOR).collect::<Vec<&str>>();
+
+        let mut params: BTreeMap<String, String> = BTreeMap::new();
+        for index in 0..params_size {
+            params.insert(ser_msg[2*index].to_string(), ser_msg[2*index+1].to_string());
+        }
+        offset += 2*params_size;
+
+        let mut response_topics= LinkedList::new();
+        for index in 0..response_topics_size {
+            response_topics.push_back(ser_msg[offset + index].to_string());
+        }
+        offset += response_topics_size;
+
+        let sender = ser_msg[offset].to_string();
+        let text = ser_msg[offset + 1..].join(MESSAGE_SEPARATOR.to_string().as_str());
+
+        Ok(Self {
+            message_type,
+            params,
+            response_topics,
+            sender,
+            text,
         })
     }
 
@@ -170,12 +241,10 @@ impl Message {
         let topic = response_topics.pop_front().ok_or(crate::error::Error::ReplyError)?;
         let response = Self {
             text,
-            starting_module: self.starting_module.clone(),
-            request_topic: self.request_topic.clone(),
             response_topics,
             sender: self.sender.clone(),
             message_type,
-            params: HashMap::default(),
+            params: BTreeMap::default(),
         };
         Ok((topic, response))
     }

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use clap::Command;
 use crate::config::Config;
 use crate::error::Error;
@@ -9,7 +9,7 @@ pub struct ModuleDetails {
     module_name: &'static str,
     version: &'static str,
     config: Option<Config>,
-    capabilities: HashMap<String, String>
+    capabilities: BTreeMap<String, String>
 }
 impl ModuleDetails {
     pub fn builder() -> ModuleDetailsBuilder {
@@ -23,16 +23,16 @@ pub struct ModuleDetailsBuilder {
     module_name: &'static str,
     version: &'static str,
     config: Option<Config>,
-    capabilities: HashMap<String, String>
+    capabilities: BTreeMap<String, String>
 }
 
 impl ModuleDetailsBuilder {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             module_name: "",
             version: "",
             config: None,
-            capabilities: HashMap::new()
+            capabilities: BTreeMap::new()
         }
     }
     pub const fn module_name(mut self, module_name: &'static str) -> Self {
@@ -47,7 +47,7 @@ impl ModuleDetailsBuilder {
         self.config = config;
         self
     }
-    pub fn capabilities(mut self, capabilities: HashMap<String, String>) -> Self {
+    pub fn capabilities(mut self, capabilities: BTreeMap<String, String>) -> Self {
         self.capabilities = capabilities;
         self
     }
@@ -66,7 +66,7 @@ pub struct AlfredModule {
     pub version: String,
     pub config: Config,
     pub connection: Connection,
-    pub capabilities: HashMap<String, String> // TODO: change to HashMap<&'static str, &'static str>
+    pub capabilities: BTreeMap<String, String> // TODO: change to HashMap<&'static str, &'static str>
 }
 
 impl AlfredModule {
@@ -84,7 +84,7 @@ impl AlfredModule {
             module_name,
             version,
             config: None,
-            capabilities: HashMap::new()
+            capabilities: BTreeMap::new()
         };
         Self::new_with_details(module_config).await
     }
