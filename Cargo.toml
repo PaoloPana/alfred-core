@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Paolo Panarese <panarese.paolo@gmail.com>"]
 description = "Alfred Rust Library"
 license = "MIT"
-repository = "https://github.com/PaoloPana/alfred-rs"
+repository = "https://github.com/PaoloPana/alfred-core"
 readme = "./README.md"
 keywords = ["framework", "multi-modal", "ai", "personal-assistant"]
 categories = ["development-tools", "command-line-utilities", "network-programming"]
@@ -19,7 +19,7 @@ toml = "0.8"
 serde = "1.0"
 serde_derive = "1.0"
 envconfig = "0.11"
-itertools = "0.13"
+itertools = "0.14"
 log = "0.4"
 clap = "4.5"
 zmq2 = { version = "0.5", optional = true }

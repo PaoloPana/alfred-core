@@ -1,5 +1,5 @@
 repo = [
-    "https://github.com/PaoloPana/alfred-rs",
+    "https://github.com/PaoloPana/alfred-core",
     "https://github.com/PaoloPana/alfred-ai-callback",
     "https://github.com/PaoloPana/alfred-audio-out",
     "https://github.com/PaoloPana/alfred-console",
