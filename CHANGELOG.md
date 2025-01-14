@@ -2,6 +2,15 @@
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Modified
+- Improved message compression
+- Renamed project from alfred-rs to alfred-core
+- Improved install script
+- Improved documentation
+
+### Updated
+- Updated itertools requirement from 0.13 to 0.14
+
 ## [0.1.9] - 2025-01-03
 
 ### Added
