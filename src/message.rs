@@ -1,5 +1,6 @@
 use std::{fmt, str::FromStr};
 use std::collections::{BTreeMap, LinkedList};
+use std::fmt::Debug;
 use itertools::Itertools;
 use serde_derive::Deserialize;
 use crate::error::MessageCompressionError;
@@ -67,13 +68,24 @@ impl fmt::Display for MessageType {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Default)]
+#[derive(PartialEq, Eq, Default)]
 pub struct Message {
     pub message_type: MessageType,
     pub params: BTreeMap<String, String>,
     pub response_topics: LinkedList<String>,
     pub sender: String,
     pub text: String,
+}
+
+impl Debug for Message {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}] {}\n - params: {:?}\n - response_topics: {:?}",
+               self.message_type,
+               self.text,
+               self.params,
+               self.response_topics
+        )
+    }
 }
 
 impl Clone for Message {
@@ -151,17 +163,16 @@ impl Message {
         let params = self.params.iter()
             .map(|(k, v)| format!("{k}{MESSAGE_SEPARATOR}{v}{MESSAGE_SEPARATOR}"))
             .join("");
+        let response_topics = self.response_topics.iter()
+            .map(|val| format!("{val}{MESSAGE_SEPARATOR}"))
+            .join("");
 
         [
             self.message_type.compress().to_string(),
             compress_number(self.params.len()),
             compress_number(self.response_topics.len()),
             params,
-            Itertools::intersperse(
-                self.response_topics.iter()
-                    .cloned(), MESSAGE_SEPARATOR.to_string()
-            ).collect(),
-            MESSAGE_SEPARATOR.to_string(),
+            response_topics,
             self.sender.clone(),
             MESSAGE_SEPARATOR.to_string(),
             self.text.clone(),
@@ -188,6 +199,30 @@ impl Message {
     ///     message_type: MessageType::Text,
     ///     text: String::from("data"),
     ///     response_topics: LinkedList::from([String::from("module.response"), String::from("other.module")]),
+    ///     sender: String::from("0123"),
+    ///     params: BTreeMap::from([
+    ///         (String::from("par1"), String::from("val1")),
+    ///         (String::from("par2"), String::from("val2"))
+    ///     ])
+    /// };
+    /// assert_eq!(message, decompressed.unwrap());
+    /// ```
+    /// ```rust
+    /// use std::collections::{BTreeMap, LinkedList, VecDeque};
+    /// use std::io::Lines;
+    /// use alfred_core::message::{Message, MessageType};
+    ///
+    /// const MESSAGE_SEPARATOR : char = 0x0 as char;
+    ///
+    /// let compressed_message_type = 0x01 as char;
+    /// let compressed_num_params = 0x02 as char;
+    /// let compressed_num_responses = 0x00 as char;
+    /// let decompressed = Message::decompress(format!("{compressed_message_type}{compressed_num_params}{compressed_num_responses}par1{MESSAGE_SEPARATOR}val1{MESSAGE_SEPARATOR}par2{MESSAGE_SEPARATOR}val2{MESSAGE_SEPARATOR}0123{MESSAGE_SEPARATOR}data").as_str());
+    /// assert!(decompressed.is_ok());
+    /// let message: Message = Message {
+    ///     message_type: MessageType::Text,
+    ///     text: String::from("data"),
+    ///     response_topics: LinkedList::from([]),
     ///     sender: String::from("0123"),
     ///     params: BTreeMap::from([
     ///         (String::from("par1"), String::from("val1")),
@@ -244,7 +279,7 @@ impl Message {
             response_topics,
             sender: self.sender.clone(),
             message_type,
-            params: BTreeMap::default(),
+            params: self.params.clone(),
         };
         Ok((topic, response))
     }
