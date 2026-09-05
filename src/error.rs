@@ -45,6 +45,6 @@ pub enum MessageCompressionError{
     FieldNotFound(String),
     #[error("message type {0} not found!")]
     MessageType(String),
-    #[error("error during decompression")]
-    DecompressionError()
+    #[error("error during decompression: {0}")]
+    DecompressionError(String)
 }

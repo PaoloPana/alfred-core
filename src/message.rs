@@ -234,12 +234,12 @@ impl Message {
     pub fn decompress(comp_str: &str) -> Result<Self, MessageCompressionError> {
         let mut binding = comp_str.chars();
         let mut get_next_char = || {
-            binding.nth(0).ok_or(MessageCompressionError::DecompressionError())
+            binding.nth(0).ok_or(MessageCompressionError::DecompressionError(format!("No chars left: {comp_str}")))
         };
 
         let message_type_str = get_next_char()?;
         let message_type = MessageType::decompress(message_type_str)
-            .map_err(|_| MessageCompressionError::DecompressionError())?;
+            .map_err(|_| MessageCompressionError::DecompressionError(format!("Unknown message_type {message_type_str}: {comp_str}")))?;
 
         let mut offset = 0;
         let params_size = (get_next_char()? as u8) as usize;
