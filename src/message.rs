@@ -234,7 +234,7 @@ impl Message {
     pub fn decompress(comp_str: &str) -> Result<Self, MessageCompressionError> {
         let mut binding = comp_str.chars();
         let mut get_next_char = || {
-            binding.nth(0).ok_or(MessageCompressionError::DecompressionError(format!("No chars left: {comp_str}")))
+            binding.nth(0).ok_or_else(|| MessageCompressionError::DecompressionError(format!("No chars left: {comp_str}")))
         };
 
         let message_type_str = get_next_char()?;
