@@ -32,7 +32,7 @@ impl AlfredSubscriber {
         let msg_string = Self::get_slice_from_message(&zmq_message, 1)?;
 
         let message = Message::decompress(msg_string.as_str())?;
-        debug!("{topic_string}: {message}");
+        debug!("{topic_string}: {message:?}");
         Ok((topic_string, message))
     }
 }
@@ -53,12 +53,11 @@ impl AlfredPublisher {
         let topic_bytes = Bytes::from(topic.to_string());
         let message_bytes = Bytes::from(message.to_string());
         let zmq_message = vec![topic_bytes, message_bytes].try_into().or(Err(Error::ConversionError))?;
-        debug!(" > {topic}: {message}");
         self.publisher.send(zmq_message).await.map_err(|_| Error::PublishError(topic.to_string(), message.to_string()))
     }
 
     pub(crate) async fn send(&mut self, topic: &str, message: &Message) -> Result<(), Error> {
-        debug!("Publishing message {message} to topic {topic}...");
+        debug!("Publishing message to topic {topic}: {message:?}");
         self.publish_str(topic, message.compress().as_str()).await
     }
 }

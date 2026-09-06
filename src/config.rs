@@ -29,7 +29,7 @@ impl Config {
             .and_then(Value::as_table)
             .map_or_else(HashMap::new, |module_config| module_config
                 .iter()
-                .map(|(k, v)| (k.to_string(), v.as_str().unwrap_or("").to_string()))
+                .map(|(k, v)| (k.clone(), v.as_str().unwrap_or("").to_string()))
                 .collect())
     }
 
