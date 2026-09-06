@@ -79,6 +79,7 @@ jobs:
           CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
 
   publish:
+    environment: Deployment
     runs-on: ubuntu-latest
     needs:
       - test-ubuntu
