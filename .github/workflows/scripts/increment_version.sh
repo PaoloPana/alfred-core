@@ -2,6 +2,7 @@
 set -xeu
 
 version="$1"
+npm install -g semver
 new_version=$(semver -i minor "$version")
 IFS=";"
 for crate_path in $CRATE_PATHS; do
