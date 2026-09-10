@@ -1,9 +1,13 @@
 use std::collections::BTreeMap;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{SystemTime, UNIX_EPOCH};
 use clap::Command;
 use crate::config::Config;
 use crate::error::Error;
 use crate::message::{Message, MessageType};
 use crate::connection::{Connection, MODULE_INFO_TOPIC_REQUEST, MODULE_INFO_TOPIC_RESPONSE, TOPIC_PREFIX};
+
+static STREAM_ID_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 pub struct ModuleDetails {
     module_name: &'static str,
@@ -128,7 +132,60 @@ impl AlfredModule {
         self.connection.send(topic, message).await
     }
 
+    /// Sends one chunk of a stream to `topic`. `message.stream_id`/`sequence`/`is_final` carry
+    /// the chunk's stream metadata (see [`Message`]); every other field is sent as given. If
+    /// `message.stream_id` is empty, a new one is generated for this stream — pass the same
+    /// (non-empty) id back in on `message` for every following chunk. Returns the `stream_id`
+    /// used, so the caller can carry it forward.
+    pub async fn send_stream(&self, topic: &str, mut message: Message) -> Result<String, Error> {
+        message.stream_id = resolve_stream_id(&self.module_name, message.stream_id);
+        self.send(topic, &message).await?;
+        Ok(message.stream_id)
+    }
+
     pub async fn send_event(&mut self, publisher_name: &str, event_name: &str, message: &Message) -> Result<(), Error> {
         self.connection.send_event(publisher_name, event_name, message).await
+    }
+
+    /// Sends one chunk of a stream to the event topic for `publisher_name`/`event_name`
+    /// (same topic scheme as [`Self::send_event`]). See [`Self::send_stream`] for the
+    /// `stream_id`/`sequence` semantics.
+    pub async fn send_event_stream(&self, publisher_name: &str, event_name: &str, message: Message) -> Result<String, Error> {
+        let topic = format!("{TOPIC_PREFIX}.{publisher_name}.{event_name}");
+        self.send_stream(&topic, message).await
+    }
+}
+
+fn resolve_stream_id(module_name: &str, stream_id: String) -> String {
+    if stream_id.is_empty() { generate_stream_id(module_name) } else { stream_id }
+}
+
+fn generate_stream_id(module_name: &str) -> String {
+    let counter = STREAM_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
+    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |duration| duration.as_nanos());
+    format!("{module_name}-{nanos}-{counter}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_stream_id;
+
+    #[test]
+    fn resolve_stream_id_keeps_supplied_id() {
+        assert_eq!(resolve_stream_id("mod", String::from("existing-id")), "existing-id");
+    }
+
+    #[test]
+    fn resolve_stream_id_generates_when_empty() {
+        let generated = resolve_stream_id("mod", String::new());
+        assert!(!generated.is_empty());
+        assert!(generated.starts_with("mod-"));
+    }
+
+    #[test]
+    fn resolve_stream_id_generates_distinct_ids() {
+        let first = resolve_stream_id("mod", String::new());
+        let second = resolve_stream_id("mod", String::new());
+        assert_ne!(first, second);
     }
 }
