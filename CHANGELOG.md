@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - yyyy-mm-dd
+## [0.2.1] - 2026-09-10
 
 ### Added
 - Added `StreamText`, `StreamAudio` and `StreamPhoto` variants to `MessageType`, for messages sent as a stream of chunks
