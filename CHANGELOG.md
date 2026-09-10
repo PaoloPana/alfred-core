@@ -4,8 +4,8 @@
 
 ### Added
 - Added `StreamText`, `StreamAudio` and `StreamPhoto` variants to `MessageType`, for messages sent as a stream of chunks
-- Added `is_final`, `stream_id` and `sequence` fields to `Message` (all ignored for non-stream types): `is_final` marks the last chunk of a `Stream*` message, `stream_id` lets a receiver tell apart chunks of concurrently in-flight streams, and `sequence` is a chunk's 0-based position within its stream. `Message::reply` now takes an `is_final` argument, and the new `Message::reply_chunk` also sets `stream_id`/`sequence`
-- Added `AlfredModule::send_stream`, which sends one `StreamText` chunk to a topic, generating a `stream_id` when none is supplied and returning the one used
+- Added `is_final`, `stream_id` and `sequence` fields to `Message` (all ignored for non-stream types): `is_final` marks the last chunk of a `Stream*` message, `stream_id` lets a receiver tell apart chunks of concurrently in-flight streams, and `sequence` is a chunk's 0-based position within its stream. The new `Message::reply_chunk` sets all three explicitly; `Message::reply` delegates to it with `is_final: true` (a plain reply is a complete, one-chunk message)
+- Added `AlfredModule::send_stream(topic, message)` and `AlfredModule::send_event_stream(publisher_name, event_name, message)`, which send one stream chunk and fill in `message.stream_id` when it's empty, returning the id used so the caller can pass it into the next chunk
 
 ### Fixed
 - Fixed `Message::decompress` panicking/corrupting data for message types encoded above `0x7F` (e.g. `ModuleInfo`, and now the `Stream*` types), which byte-sliced the compressed string instead of slicing by char

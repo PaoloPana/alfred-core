@@ -132,21 +132,15 @@ impl AlfredModule {
         self.connection.send(topic, message).await
     }
 
-    /// Sends one chunk of a stream to `topic`. If `stream_id` is empty, a new one is
-    /// generated for this stream; pass the same (non-empty) `stream_id` back in for every
-    /// following chunk. Returns the `stream_id` used, so the caller can carry it forward.
-    pub async fn send_stream(&self, topic: &str, text: String, message_type: MessageType, sequence: u32, stream_id: String, is_final: bool) -> Result<String, Error> {
-        let stream_id = resolve_stream_id(&self.module_name, stream_id);
-        let message = Message {
-            text,
-            message_type,
-            is_final,
-            stream_id: stream_id.clone(),
-            sequence,
-            ..Message::default()
-        };
+    /// Sends one chunk of a stream to `topic`. `message.stream_id`/`sequence`/`is_final` carry
+    /// the chunk's stream metadata (see [`Message`]); every other field is sent as given. If
+    /// `message.stream_id` is empty, a new one is generated for this stream — pass the same
+    /// (non-empty) id back in on `message` for every following chunk. Returns the `stream_id`
+    /// used, so the caller can carry it forward.
+    pub async fn send_stream(&self, topic: &str, mut message: Message) -> Result<String, Error> {
+        message.stream_id = resolve_stream_id(&self.module_name, message.stream_id);
         self.send(topic, &message).await?;
-        Ok(stream_id)
+        Ok(message.stream_id)
     }
 
     pub async fn send_event(&mut self, publisher_name: &str, event_name: &str, message: &Message) -> Result<(), Error> {
@@ -156,9 +150,9 @@ impl AlfredModule {
     /// Sends one chunk of a stream to the event topic for `publisher_name`/`event_name`
     /// (same topic scheme as [`Self::send_event`]). See [`Self::send_stream`] for the
     /// `stream_id`/`sequence` semantics.
-    pub async fn send_event_stream(&self, publisher_name: &str, event_name: &str, text: String, message_type: MessageType, sequence: u32, stream_id: String, is_final: bool) -> Result<String, Error> {
+    pub async fn send_event_stream(&self, publisher_name: &str, event_name: &str, message: Message) -> Result<String, Error> {
         let topic = format!("{TOPIC_PREFIX}.{publisher_name}.{event_name}");
-        self.send_stream(&topic, text, message_type, sequence, stream_id, is_final).await
+        self.send_stream(&topic, message).await
     }
 }
 
