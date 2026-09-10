@@ -132,14 +132,15 @@ impl AlfredModule {
         self.connection.send(topic, message).await
     }
 
-    /// Sends one chunk of a text stream to `topic`. If `stream_id` is empty, a new one is
+    /// Sends one chunk of a stream to `topic`. If `stream_id` is empty, a new one is
     /// generated for this stream; pass the same (non-empty) `stream_id` back in for every
     /// following chunk. Returns the `stream_id` used, so the caller can carry it forward.
-    pub async fn send_stream(&self, topic: &str, text: String, sequence: u32, stream_id: String) -> Result<String, Error> {
+    pub async fn send_stream(&self, topic: &str, text: String, message_type: MessageType, sequence: u32, stream_id: String, is_final: bool) -> Result<String, Error> {
         let stream_id = resolve_stream_id(&self.module_name, stream_id);
         let message = Message {
             text,
-            message_type: MessageType::StreamText,
+            message_type,
+            is_final,
             stream_id: stream_id.clone(),
             sequence,
             ..Message::default()
@@ -150,6 +151,14 @@ impl AlfredModule {
 
     pub async fn send_event(&mut self, publisher_name: &str, event_name: &str, message: &Message) -> Result<(), Error> {
         self.connection.send_event(publisher_name, event_name, message).await
+    }
+
+    /// Sends one chunk of a stream to the event topic for `publisher_name`/`event_name`
+    /// (same topic scheme as [`Self::send_event`]). See [`Self::send_stream`] for the
+    /// `stream_id`/`sequence` semantics.
+    pub async fn send_event_stream(&self, publisher_name: &str, event_name: &str, text: String, message_type: MessageType, sequence: u32, stream_id: String, is_final: bool) -> Result<String, Error> {
+        let topic = format!("{TOPIC_PREFIX}.{publisher_name}.{event_name}");
+        self.send_stream(&topic, text, message_type, sequence, stream_id, is_final).await
     }
 }
 

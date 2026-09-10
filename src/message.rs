@@ -334,16 +334,10 @@ impl Message {
         })
     }
 
-    /// Builds a reply to this message. `is_final` marks whether this is the last chunk of a
-    /// stream when `message_type` is one of the `Stream*` variants; it is ignored otherwise.
-    pub fn reply(&self, text: String, message_type: MessageType, is_final: bool) -> Result<(String, Self), crate::error::Error> {
-        self.reply_chunk(text, message_type, is_final, String::new(), 0)
+    pub fn reply(&self, text: String, message_type: MessageType) -> Result<(String, Self), crate::error::Error> {
+        self.reply_chunk(text, message_type, true, String::new(), 0)
     }
 
-    /// Builds a reply carrying one chunk of a stream. `stream_id` groups every chunk of the same
-    /// stream together (so a receiver can tell apart concurrently in-flight streams), `sequence`
-    /// is the chunk's 0-based position within that stream, and `is_final` marks the last chunk.
-    /// All three are ignored when `message_type` is not one of the `Stream*` variants.
     pub fn reply_chunk(&self, text: String, message_type: MessageType, is_final: bool, stream_id: String, sequence: u32) -> Result<(String, Self), crate::error::Error> {
         let mut response_topics = self.response_topics.clone();
         let topic = response_topics.pop_front().ok_or(crate::error::Error::ReplyError)?;
@@ -456,7 +450,7 @@ mod tests {
             response_topics: LinkedList::from([String::from("next.topic")]),
             ..Message::default()
         };
-        let (_, response) = request.reply(String::from("text"), MessageType::Text, false)
+        let (_, response) = request.reply(String::from("text"), MessageType::Text)
             .expect("reply should succeed when a response topic is present");
         assert_eq!(response.stream_id, "");
         assert_eq!(response.sequence, 0);
