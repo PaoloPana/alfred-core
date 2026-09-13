@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased] - yyyy-mm-dd
+- Trimmed logs for `StreamText`, `StreamAudio` and `StreamPhoto` messages
 
 ## [0.2.1] - 2026-09-10
 
