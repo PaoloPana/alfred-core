@@ -2,6 +2,29 @@
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Added
+- Added `PROTOCOL_VERSION` (`3`), sent as the first byte of every message header: `Message::decode` rejects any other version with `MessageEncodingError::ProtocolVersion`. Messages sent by older alfred-core versions are always rejected: they have no payload frame, and apart from `Photo` their first byte is not `3`
+- Added `Message::text`, which returns the payload as `&str` or `Error::PayloadNotText`, and `Message::payload_description`, which returns the text or `<N bytes>` for binary payloads
+- Re-exported `bytes`
+
+### Modified
+- **Breaking:** messages are now binary. Every message is sent as three ZeroMQ frames: topic, header (protocol version followed by the metadata encoded in MessagePack with named fields) and payload (raw bytes). Modules built on alfred-core 0.2.x or older cannot exchange messages with this version
+- **Breaking:** replaced `Message::text: String` with `Message::payload: Bytes`, so a message can carry any binary content. `Audio` and `Photo` messages still carry a file path as text
+- **Breaking:** replaced `Message::compress`/`decompress` with `Message::encode`/`decode`, and `MessageType::compress`/`decompress` with `MessageType::encode`/`decode` (`u8` instead of `char`); removed `impl Display for Message`
+- **Breaking:** `Message::reply` and `Message::reply_chunk` accept any `impl Into<Bytes>` as payload
+- **Breaking:** renamed `MessageCompressionError` to `MessageEncodingError` and `Error::MessageCompressionError` to `Error::MessageEncodingError`; `Error::PublishError` now contains only the topic
+- Params, response topics, sender and stream id can contain any char (including `\0`), and a message can have any number of params and response topics
+- `Connection::receive` (and so `AlfredModule::receive`) now logs and discards messages that cannot be decoded instead of returning an error, so a module built on an older alfred-core cannot stop the other modules
+- `logs` now shows a warning for messages that cannot be decoded instead of exiting, and shows binary payloads as `<N bytes>`
+- Moved tests out of the source files: public API tests in `tests/`, tests of private functions in a `tests.rs` file next to their module
+
+### Removed
+- Removed `itertools` dependency
+
+### Fixed
+- Fixed memory leak in `Connection::send_event`, which leaked the topic string of every event sent
+- Fixed `ModuleDetailsBuilder::build` setting the module name as version
+
 ## [0.2.1] - 2026-09-10
 
 ### Added

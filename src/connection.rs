@@ -4,7 +4,7 @@ use std::time::Duration;
 use crate::config::Config;
 use crate::message::{Message, MessageType};
 use crate::error::Error;
-use log::debug;
+use log::{debug, warn};
 use tokio::sync::Mutex;
 use crate::zmq_connection::{AlfredPublisher, AlfredSubscriber};
 
@@ -43,7 +43,7 @@ impl Connection {
 
     async fn send_module_info(&self, module_name: &str, capabilities: &BTreeMap<String, String>) -> Result<(), Error> {
         let info_msg = Message {
-            text: module_name.to_string(),
+            payload: module_name.to_string().into(),
             message_type: MessageType::Text,
             params: capabilities.clone(),
             ..Message::default()
@@ -60,7 +60,13 @@ impl Connection {
 
     pub async fn receive(&self, module_name: &str, capabilities: &BTreeMap<String, String>) -> Result<(String, Message), Error> {
         loop {
-            let (topic, message) = self.receive_all().await?;
+            let (topic, message) = match self.receive_all().await {
+                Err(Error::MessageEncodingError(err)) => {
+                    warn!("Discarding message that cannot be decoded: {err}");
+                    continue;
+                },
+                received => received?
+            };
             if self.manage_module_info_request(topic.as_str(), module_name, capabilities).await? {
                 continue;
             }
@@ -74,7 +80,6 @@ impl Connection {
 
     pub async fn send_event(&self, publisher_name: &str, event_name: &str, message: &Message) -> Result<(), Error> {
         let topic = format!("{TOPIC_PREFIX}.{publisher_name}.{event_name}");
-        let topic_ref: &'static str = Box::leak(topic.into_boxed_str());
-        self.send(topic_ref, message).await
+        self.send(topic.as_str(), message).await
     }
 }

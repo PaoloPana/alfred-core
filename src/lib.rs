@@ -2,6 +2,7 @@
 pub use tokio;
 pub use log;
 pub use clap;
+pub use bytes;
 
 pub mod message;
 pub mod config;
