@@ -24,14 +24,14 @@ async fn main() -> Result<(), Error> {
             MessageType::Text => {
                 info!("{}: {}", topic, message.payload_description());
             },
-            MessageType::Unknown | MessageType::Audio | MessageType::Photo => {
-                info!("{}[{}]: {}", topic, message.message_type, message.payload_description());
-            },
             MessageType::StreamText | MessageType::StreamAudio | MessageType::StreamPhoto => {
                 info!("{}[{}][stream_id: {}][sequence: {}][is_final: {}]: {}", topic, message.message_type, message.stream_id, message.sequence, message.is_final, message.payload_description());
             },
             MessageType::ModuleInfo => {
                 info!("Module Info: {}\n\t{:?}", message.payload_description(), message.params);
+            },
+            MessageType::Unknown | MessageType::Audio | MessageType::Photo | _ => {
+                info!("{}[{}]: {}", topic, message.message_type, message.payload_description());
             }
         }
         debug!("response_topics: {:?}", message.response_topics);

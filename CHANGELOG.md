@@ -13,6 +13,8 @@
 - **Breaking:** replaced `Message::compress`/`decompress` with `Message::encode`/`decode`, and `MessageType::compress`/`decompress` with `MessageType::encode`/`decode` (`u8` instead of `char`); removed `impl Display for Message`
 - **Breaking:** `Message::reply` and `Message::reply_chunk` accept any `impl Into<Bytes>` as payload
 - **Breaking:** renamed `MessageCompressionError` to `MessageEncodingError` and `Error::MessageCompressionError` to `Error::MessageEncodingError`; `Error::PublishError` now contains only the topic
+- **Breaking:** `MessageType` is now `#[non_exhaustive]`: a `match` on it needs a `_` arm (e.g. `MessageType::Photo | _`), so new message types can be added in minor releases without breaking modules
+- Missing header fields are decoded with their default value and unknown header fields are ignored: new header fields can be added in minor releases, and the protocol version changes only for incompatible changes
 - Params, response topics, sender and stream id can contain any char (including `\0`), and a message can have any number of params and response topics
 - `Connection::receive` (and so `AlfredModule::receive`) now logs and discards messages that cannot be decoded instead of returning an error, so a module built on an older alfred-core cannot stop the other modules
 - `logs` now shows a warning for messages that cannot be decoded instead of exiting, and shows binary payloads as `<N bytes>`

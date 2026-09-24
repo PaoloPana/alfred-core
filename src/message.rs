@@ -9,6 +9,7 @@ use crate::error::{Error, MessageEncodingError};
 pub const PROTOCOL_VERSION : u8 = 0x03;
 
 #[derive(Debug, PartialEq, Eq, Clone, Deserialize, Default)]
+#[non_exhaustive]
 pub enum MessageType {
     #[default]
     Unknown,
@@ -94,7 +95,8 @@ struct EncodedHeader<'a> {
     sender: &'a str,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Default)]
+#[serde(default)]
 struct DecodedHeader {
     message_type: u8,
     is_final: bool,
@@ -251,3 +253,6 @@ impl Message {
     }
 
 }
+
+#[cfg(test)]
+mod tests;
