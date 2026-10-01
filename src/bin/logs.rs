@@ -1,4 +1,4 @@
-use log::{debug, info};
+use log::{debug, info, warn};
 use alfred_core::AlfredModule;
 use alfred_core::error::Error;
 use alfred_core::message::MessageType;
@@ -13,19 +13,25 @@ async fn main() -> Result<(), Error> {
     let mut module = AlfredModule::new(MODULE_NAME, env!("CARGO_PKG_VERSION")).await?;
     module.listen(WILDCARD_TOPIC).await?;
     loop {
-        let (topic, message) = module.connection.receive_all().await?;
+        let (topic, message) = match module.connection.receive_all().await {
+            Err(Error::MessageEncodingError(err)) => {
+                warn!("Message that cannot be decoded: {err}");
+                continue;
+            },
+            received => received?
+        };
         match message.message_type {
             MessageType::Text => {
-                info!("{}: {}", topic, message.text);
-            },
-            MessageType::Unknown | MessageType::Audio | MessageType::Photo => {
-                info!("{}[{}]: {}", topic, message.message_type, message.text);
+                info!("{}: {}", topic, message.payload_description());
             },
             MessageType::StreamText | MessageType::StreamAudio | MessageType::StreamPhoto => {
-                info!("{}[{}][stream_id: {}][sequence: {}][is_final: {}]: {}", topic, message.message_type, message.stream_id, message.sequence, message.is_final, message.text);
+                info!("{}[{}][stream_id: {}][sequence: {}][is_final: {}]: {}", topic, message.message_type, message.stream_id, message.sequence, message.is_final, message.payload_description());
             },
             MessageType::ModuleInfo => {
-                info!("Module Info: {}\n\t{:?}", message.text, message.params);
+                info!("Module Info: {}\n\t{:?}", message.payload_description(), message.params);
+            },
+            MessageType::Unknown | MessageType::Audio | MessageType::Photo | _ => {
+                info!("{}[{}]: {}", topic, message.message_type, message.payload_description());
             }
         }
         debug!("response_topics: {:?}", message.response_topics);
