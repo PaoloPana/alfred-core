@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - yyyy-mm-dd
+## [0.3.0] - 2026-10-01
 
 ### Added
 - Added `PROTOCOL_VERSION` (`3`), sent as the first byte of every message header: `Message::decode` rejects any other version with `MessageEncodingError::ProtocolVersion`. Messages sent by older alfred-core versions are always rejected: they have no payload frame, and apart from `Photo` their first byte is not `3`
