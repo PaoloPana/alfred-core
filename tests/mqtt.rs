@@ -71,7 +71,7 @@ async fn two_modules_exchange_messages() {
     assert_eq!(received_topic, topic);
     assert_eq!(received.text().expect("text"), "ping");
     assert_eq!(received.params, request.params);
-    assert!(!received.id.is_empty());
+    assert_ne!(received.id, "");
 
     let (response_topic, response) = received.reply("pong", MessageType::Text).expect("reply");
     assert_eq!(response_topic, reply_topic);
@@ -94,7 +94,8 @@ async fn every_publication_has_a_new_id() {
     sender.send(&topic, &message).await.expect("send");
     let (_, first) = receive(&receiver).await;
     let (_, second) = receive(&receiver).await;
-    assert!(!first.id.is_empty() && !second.id.is_empty());
+    assert_ne!(first.id, "");
+    assert_ne!(second.id, "");
     assert_ne!(first.id, second.id);
     assert_eq!(first.payload, second.payload);
 }
