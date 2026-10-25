@@ -13,6 +13,7 @@ struct FutureHeader {
     response_topics: Vec<String>,
     sender: String,
     turn_id: String,
+    id: String,
 }
 
 #[derive(Serialize)]
@@ -20,10 +21,14 @@ struct MinimalHeader {
     message_type: u8,
 }
 
-fn header_frame(header: &impl serde::Serialize) -> Bytes {
-    let mut frame = vec![PROTOCOL_VERSION];
-    rmp_serde::encode::write_named(&mut frame, header).expect("header should encode");
-    Bytes::from(frame)
+fn wire_message(header: &impl serde::Serialize, payload: &[u8]) -> Bytes {
+    let mut header_bytes = Vec::new();
+    rmp_serde::encode::write_named(&mut header_bytes, header).expect("header should encode");
+    let mut data = vec![PROTOCOL_VERSION];
+    data.extend_from_slice(&u32::try_from(header_bytes.len()).expect("header length").to_be_bytes());
+    data.extend_from_slice(&header_bytes);
+    data.extend_from_slice(payload);
+    Bytes::from(data)
 }
 
 #[test]
@@ -37,8 +42,9 @@ fn decode_ignores_unknown_header_fields() {
         response_topics: vec![String::from("next.topic")],
         sender: String::from("0123"),
         turn_id: String::from("turn-1"),
+        id: String::from("id-1"),
     };
-    let message = Message::decode(&[header_frame(&header), Bytes::from("data")]).expect("message should decode");
+    let message = Message::decode(&wire_message(&header, b"data")).expect("message should decode");
     assert_eq!(message.message_type, MessageType::StreamText);
     assert!(message.is_final);
     assert_eq!(message.stream_id, "stream-1");
@@ -46,13 +52,14 @@ fn decode_ignores_unknown_header_fields() {
     assert_eq!(message.params.get("key").map(String::as_str), Some("value"));
     assert_eq!(message.response_topics.front().map(String::as_str), Some("next.topic"));
     assert_eq!(message.sender, "0123");
+    assert_eq!(message.id, "id-1");
     assert_eq!(message.payload, Bytes::from("data"));
 }
 
 #[test]
 fn decode_uses_defaults_for_missing_header_fields() {
     let header = MinimalHeader { message_type: MessageType::Text.encode() };
-    let message = Message::decode(&[header_frame(&header), Bytes::from("data")]).expect("message should decode");
+    let message = Message::decode(&wire_message(&header, b"data")).expect("message should decode");
     assert_eq!(message, Message {
         message_type: MessageType::Text,
         payload: Bytes::from("data"),

@@ -18,6 +18,7 @@ impl ConfigMessage {
             params.extend(config_params.clone());
         }
         Message {
+            id: String::new(),
             payload: self.text.clone().map_or_else(|| default.payload.clone(), Into::into),
             response_topics: self.response_topics.clone().unwrap_or_else(|| default.response_topics.clone()),
             sender: self.sender.clone().unwrap_or_else(|| default.sender.clone()),

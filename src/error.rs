@@ -1,5 +1,3 @@
-use zeromq::ZmqError;
-
 #[derive(Debug)]
 #[derive(thiserror::Error)]
 #[from(std::error::Error)]
@@ -24,19 +22,17 @@ pub enum Error {
     MissingEnvPropertyError(String),
     #[error("Missing file property: {0}")]
     MissingFilePropertyError(String),
-    #[error("ZmqError: {0}")]
-    ZmqError(ZmqError),
+    #[error("Invalid topic: {0}")]
+    InvalidTopic(String),
+    #[error("Invalid configuration: {0}")]
+    InvalidConfig(String),
+    #[error("MqttError: {0}")]
+    MqttError(String),
 }
 
 impl From<MessageEncodingError> for Error {
     fn from(value: MessageEncodingError) -> Self {
         Self::MessageEncodingError(value.to_string())
-    }
-}
-
-impl From<ZmqError> for Error {
-    fn from(value: ZmqError) -> Self {
-        Self::ZmqError(value)
     }
 }
 

@@ -10,7 +10,9 @@ pub mod config;
 pub mod error;
 mod module;
 pub mod connection;
-mod zmq_connection;
+mod mqtt_connection;
+mod dedup;
+pub mod topic;
 
 pub use module::AlfredModule;
 pub use module::ModuleDetailsBuilder;

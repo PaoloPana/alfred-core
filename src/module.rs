@@ -95,7 +95,9 @@ impl AlfredModule {
 
     pub async fn new_with_details(module_details: ModuleDetails) -> Result<Self, Error> {
         Self::manage_args(module_details.module_name, module_details.version);
-        let config = module_details.config.unwrap_or_else(|| Config::read(Some(module_details.module_name)));
+        let config = module_details.config
+            .unwrap_or_else(|| Config::read(Some(module_details.module_name)))
+            .with_default_module_name(module_details.module_name);
         let capabilities = module_details.capabilities;
         let mut connection = Connection::new(&config).await?;
         connection.listen(MODULE_INFO_TOPIC_REQUEST).await?;
