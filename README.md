@@ -13,6 +13,8 @@
 ## Docs
  - More tech-ish info [HERE](docs/details.md).
  - If you want to create a new module using this library, check [HERE](docs/new_module.md).
+ - The modules talk through an MQTT 5 broker: setup, configuration, security: [docs/broker.md](docs/broker.md). Message format: [docs/protocol.md](docs/protocol.md).
+ - Upgrading from 0.4? See the migration notes in the [CHANGELOG](CHANGELOG.md).
 
 <!--
 Alfred is a free framework able to manage multi-channel user interactions with AI and other services.
@@ -20,7 +22,7 @@ The main idea behind Alfred is to allow users to add features easily, like insta
 
 The core of the framwork is written in Rust, but each applications (named "modules") can be written in different languages.
 
-Each module does a specific job: there is a module which receives and sends messages using Telegram, there is a module which interact with OpenAI, another module interacts with HomeAssistant and so on. The modules exchange messages using a PUB/SUB architecture (implemented with [ZeroMQ](https://zeromq.org/)). This system allows to be technology-independent: for example, you can use the SpeechToText by OpenAI or choosing the one from Google, running the proper module without changing anything.
+Each module does a specific job: there is a module which receives and sends messages using Telegram, there is a module which interact with OpenAI, another module interacts with HomeAssistant and so on. The modules exchange messages using a PUB/SUB architecture (implemented with an [MQTT](https://mqtt.org/) 5 broker such as [Mosquitto](https://mosquitto.org/)). This system allows to be technology-independent: for example, you can use the SpeechToText by OpenAI or choosing the one from Google, running the proper module without changing anything.
 -->
 
 ## Installation
@@ -30,6 +32,7 @@ Instead, if you need to work on a specific module (or to help us to improve this
 ### Prerequisites:
  - curl
  - tar
+ - an MQTT 5 broker, e.g. Mosquitto: see [docs/broker.md](docs/broker.md) (since 0.5 the `daemon` does not exist anymore)
 
 **IMPORTANT: if you already have a running installation, back-up the configuration files before running the following commands!**
 
@@ -62,7 +65,7 @@ https://github.com/PaoloPana/alfred-wake-word
 
 ## Examples
 ### Telegram ChatBot
-The best way to explain this idea is with an example: there is the core daemon (LINK TO DAEMON) which creates the base connections between modules. Let's suppose to create a simple chat bot which replies to text questions. In this case, we will execute the following modules:
+The best way to explain this idea is with an example: there is the MQTT broker (see [docs/broker.md](docs/broker.md)) which connects the modules. Let's suppose to create a simple chat bot which replies to text questions. In this case, we will execute the following modules:
  - telegram (to receive and send message using telegram bot API)
  - openai-chat (which receives a request and send a response using OpenAI ChatGPT system)
 To connect these modules, we have 2 options:
@@ -81,7 +84,7 @@ sequenceDiagram
     participant t as telegram
     participant r as Routing
     participant c as OpenAI Chat
-    participant a as Alfred Core
+    participant a as MQTT broker
     Note over t,a: Starting phase
     r-->>a: subscribe to "event.telegram.new_incoming_message"
     t-->>a: subscribe to "telegram"

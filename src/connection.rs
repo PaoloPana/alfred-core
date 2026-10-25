@@ -1,44 +1,54 @@
 use std::collections::BTreeMap;
-use std::sync::Arc;
-use std::time::Duration;
+use std::sync::{Arc, Mutex, PoisonError};
 use crate::config::Config;
+use crate::dedup::DedupCache;
 use crate::message::{Message, MessageType};
 use crate::error::Error;
 use log::{debug, warn};
-use tokio::sync::Mutex;
-use crate::zmq_connection::{AlfredPublisher, AlfredSubscriber};
+use crate::mqtt_connection::MqttTransport;
 
 pub const MODULE_INFO_TOPIC_REQUEST: &str = "module.info.request";
 pub const MODULE_INFO_TOPIC_RESPONSE: &str = "module.info.response";
 pub const TOPIC_PREFIX: &str = "event";
+/// Number of recent message ids remembered to drop duplicate deliveries
+pub const DEDUP_CACHE_SIZE: usize = 1024;
 
 #[derive(Clone)]
 pub struct Connection {
-    subscriber: Arc<Mutex<AlfredSubscriber>>,
-    publisher: Arc<Mutex<AlfredPublisher>>
+    transport: Arc<MqttTransport>,
+    dedup: Arc<Mutex<DedupCache>>,
 }
 
 impl Connection {
     pub async fn new(config: &Config) -> Result<Self, Error> {
-        let subscriber = AlfredSubscriber::new(config.get_alfred_sub_url().as_str()).await?;
-        debug!("Connected as subscriber");
-        tokio::time::sleep(Duration::from_secs(1)).await;
-        let publisher = AlfredPublisher::new(config.get_alfred_pub_url().as_str()).await?;
-        debug!("Connected as publisher");
+        let transport = MqttTransport::new(config).await?;
+        debug!("Connected to the broker");
         let mut connection = Self {
-            subscriber: Arc::new(Mutex::new(subscriber)),
-            publisher: Arc::new(Mutex::new(publisher))
+            transport: Arc::new(transport),
+            dedup: Arc::new(Mutex::new(DedupCache::new(DEDUP_CACHE_SIZE))),
         };
         connection.listen(MODULE_INFO_TOPIC_REQUEST).await?;
         Ok(connection)
     }
 
+    /// Listens to `topic` and to its sub-topics: `a.b` receives `a.b` and `a.b.c`, but not `a.bc`.
+    /// An empty topic receives everything.
     pub async fn listen(&mut self, topic: &str) -> Result<(), Error> {
-        self.subscriber.lock().await.listen(topic).await
+        self.transport.listen(topic).await
     }
 
+    /// Receives the next message of any listened topic, dropping the duplicate deliveries of
+    /// a message already received.
     pub async fn receive_all(&self) -> Result<(String, Message), Error> {
-        self.subscriber.lock().await.receive().await
+        loop {
+            let (topic, message) = self.transport.receive().await?;
+            let duplicate = self.dedup.lock().unwrap_or_else(PoisonError::into_inner).is_duplicate(&message.id);
+            if duplicate {
+                debug!("Dropping duplicate message {} on {topic}", message.id);
+                continue;
+            }
+            return Ok((topic, message));
+        }
     }
 
     async fn send_module_info(&self, module_name: &str, capabilities: &BTreeMap<String, String>) -> Result<(), Error> {
@@ -74,12 +84,20 @@ impl Connection {
         }
     }
 
+    /// Publishes `message` on `topic`. A new unique `id` is generated for every call.
     pub async fn send(&self, topic: &str, message: &Message) -> Result<(), Error> {
-        self.publisher.lock().await.send(topic, message).await
+        self.transport.send(topic, message).await
     }
 
     pub async fn send_event(&self, publisher_name: &str, event_name: &str, message: &Message) -> Result<(), Error> {
         let topic = format!("{TOPIC_PREFIX}.{publisher_name}.{event_name}");
         self.send(topic.as_str(), message).await
+    }
+
+    /// Publishes the offline status and closes the connection cleanly. Dropping the connection
+    /// instead closes the socket abruptly: the broker publishes the last will (offline status)
+    /// and keeps the session, so the queued messages are delivered at the next start.
+    pub async fn disconnect(&self) -> Result<(), Error> {
+        self.transport.disconnect().await
     }
 }

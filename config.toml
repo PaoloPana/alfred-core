@@ -1,9 +1,14 @@
 [alfred]
-url = "tcp://127.0.0.1"
-pub_port = 5678
-sub_port = 1234
+# MQTT 5 broker (e.g. Mosquitto, see docs/broker.md). Use mqtts:// for TLS.
+broker_url = "mqtt://127.0.0.1:1883"
+# Credentials: prefer the environment variables ALFRED_USERNAME and ALFRED_PASSWORD
+# to keeping secrets in this file.
+# username = "alfred"
+# ca_file = "/etc/ssl/alfred-ca.crt"
+# qos = 1                    # 0, 1 or 2
+# session_expiry_secs = 3600 # how long the broker keeps the messages for a module which is offline
+# instance_id = "kitchen"    # needed only to run the same module twice against one broker
 modules = [
-    "daemon",
     "routing",
     "cron"
 ]

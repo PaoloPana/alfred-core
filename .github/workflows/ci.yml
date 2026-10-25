@@ -18,13 +18,26 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    env:
+      ALFRED_TEST_BROKER_URL: mqtt://127.0.0.1:1883
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      # Not a `services:` container: it cannot receive a configuration file, and the default
+      # configuration of eclipse-mosquitto:2 only accepts connections from inside the container
+      - name: Start Mosquitto
+        run: |
+          docker run -d --name mosquitto -p 1883:1883 \
+            -v "$GITHUB_WORKSPACE/.github/mosquitto-ci.conf:/mosquitto/config/mosquitto.conf:ro" \
+            eclipse-mosquitto:2
+          timeout 30 sh -c 'until nc -z 127.0.0.1 1883; do sleep 1; done'
       - name: Build
         run: cargo build --all-targets
       - name: Test
         run: cargo test
+      - name: Mosquitto logs
+        if: failure()
+        run: docker logs mosquitto
 
   lint-rust:
     runs-on: ubuntu-latest

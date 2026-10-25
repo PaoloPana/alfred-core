@@ -8,7 +8,7 @@ fn resolve_stream_id_keeps_supplied_id() {
 #[test]
 fn resolve_stream_id_generates_when_empty() {
     let generated = resolve_stream_id("mod", String::new());
-    assert!(!generated.is_empty());
+    assert_ne!(generated, "");
     assert!(generated.starts_with("mod-"));
 }
 
