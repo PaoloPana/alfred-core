@@ -2,6 +2,9 @@
 
 ## [Unreleased] - yyyy-mm-dd
 
+### Modified
+- **Breaking:** transport migration from ZeroMQ to MQTT 5 (work in progress, see the PR description)
+
 ## [0.3.0] - 2026-10-01
 
 ### Added
