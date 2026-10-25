@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] - yyyy-mm-dd
+## [0.5.0] - 2026-10-25
 
 The transport is now an MQTT 5 broker (e.g. Mosquitto) instead of ZeroMQ. `AlfredModule` and `Connection` keep their API, but modules built on 0.4 or older cannot talk to modules built on this version.
 
